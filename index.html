@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Operación Grúa: Carga Segura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#16305a;--ink:#10284d;--blue:#2f9be8;--sky:#d9f1fd;--orange:#f7922b;--red:#e5472e;--green:#27a574;--paper:#ffffff}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Fredoka','Trebuchet MS',system-ui,sans-serif;color:var(--ink);background:linear-gradient(#58bdf0,#bfe8fa);min-height:100vh}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:16px;max-width:1300px;margin:0 auto;padding:16px;align-items:start}
+@media(max-width:980px){.app{grid-template-columns:1fr}}
+.stage{position:relative}
+canvas{width:100%;height:auto;border:4px solid var(--navy);border-radius:22px;display:block;touch-action:none;background:#4bb5ee;box-shadow:0 6px 0 rgba(22,48,90,.25)}
+.fbs{position:absolute;left:12px;right:12px;top:12px;z-index:4;display:none;border:4px solid;border-radius:16px;padding:10px 34px 10px 14px;font-size:14.5px;line-height:1.4;box-shadow:0 5px 0 rgba(22,48,90,.3)}
+.fbs.on{display:block}.fbs.bad{background:#ffe9e4;border-color:var(--red)}.fbs.good{background:#e0f7ea;border-color:var(--green)}.fbs.info{background:#fff6dc;border-color:#e0a800}
+.fbs .x{position:absolute;right:8px;top:6px;border:0;background:none;font-size:22px;line-height:1;cursor:pointer;color:var(--navy)}
+.fbs table{border-collapse:collapse;margin:4px 0}.fbs td{padding:0 12px 0 0}
+#toast{position:absolute;left:50%;bottom:16px;transform:translate(-50%,20px);background:var(--navy);color:#fff;padding:8px 16px;border-radius:999px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;white-space:nowrap}
+#toast.on{opacity:1;transform:translate(-50%,0)}#toast{z-index:6}
+#toast.bad{background:var(--red)}#toast.good{background:var(--green)}
+.hint{font-size:13px;color:var(--navy);opacity:.8;margin:8px 4px 0}
+.panel{background:var(--paper);border:4px solid var(--navy);border-radius:22px;padding:14px 16px 16px;box-shadow:0 6px 0 rgba(22,48,90,.25)}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);margin-bottom:6px}
+h1{font-size:22px;margin:0 0 10px;line-height:1.1}
+h2{font-size:18px;margin:12px 0 4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-weight:600;font-size:13px;border:3px solid var(--navy);background:#fff;color:var(--navy);border-radius:10px;padding:3px 9px;cursor:pointer}
+.chip.on{background:var(--navy);color:#fff}.chip.ok{background:var(--green);color:#fff;border-color:var(--navy)}
+.brief{margin:0 0 8px;font-size:14.5px;line-height:1.35}
+.lbl{font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--navy);margin:12px 0 5px;display:flex;justify-content:space-between;align-items:center}
+.lbl label{font-weight:500;text-transform:none;letter-spacing:0;font-size:13px}
+.queue{display:flex;flex-wrap:wrap;gap:8px;min-height:50px;align-items:center}
+.qbox,.pcard .tag{font:inherit;font-weight:700;color:#fff;border:3px solid var(--navy);border-radius:8px;min-width:54px;height:46px;cursor:pointer;text-shadow:0 2px 0 var(--navy);box-shadow:0 3px 0 var(--navy)}
+.qbox:active{transform:translateY(2px);box-shadow:0 1px 0 var(--navy)}
+.qbox.sel{outline:4px solid #ffd23f;outline-offset:2px}
+.c0{background:#2f6fc4}.c1{background:#f7922b}.c2{background:#27a574}.c3{background:#e5472e}
+.goal{background:#e9f8ee;border:3px dashed var(--green);border-radius:12px;padding:7px 10px;font-weight:600;margin:10px 0 0}
+.ro{font-size:13.5px;background:var(--sky);border-radius:12px;padding:8px 10px;min-height:44px}
+.ro table{border-collapse:collapse;width:100%;margin-bottom:6px;font-variant-numeric:tabular-nums}
+.ro td,.ro th{padding:1px 4px;text-align:right;border-bottom:1px solid #b6dff4}.ro th{font-size:12px;color:var(--navy)}
+.ro b{color:#c25a00}
+.btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn{font:inherit;font-weight:600;background:var(--orange);color:#fff;border:3px solid var(--navy);border-radius:12px;padding:8px 14px;box-shadow:0 3px 0 var(--navy);cursor:pointer;text-shadow:0 1px 0 rgba(0,0,0,.2)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--navy)}
+.btn.blue{background:var(--blue)}.btn.ghost{background:#fff;color:var(--navy);text-shadow:none}.btn.green{background:var(--green)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.fb{margin-top:12px;border-radius:12px;padding:0;font-size:14px;line-height:1.4}
+.fb.bad,.fb.good,.fb.info{padding:10px 12px;border:3px solid}
+.fb.bad{background:#ffe9e4;border-color:var(--red)}.fb.good{background:#e0f7ea;border-color:var(--green)}.fb.info{background:#fff6dc;border-color:#e0a800}
+.fb table{border-collapse:collapse;margin:4px 0}.fb td{padding:0 8px 0 0}
+.pcard{display:flex;gap:10px;align-items:center;border:3px solid var(--navy);border-radius:14px;padding:6px 8px;margin-bottom:8px;background:#fff}
+.pcard.sel{outline:4px solid #ffd23f}.pcard svg{flex:none;width:76px;height:64px}.pcard .info{flex:1;font-size:13.5px;line-height:1.25}
+.pcard .info b{font-size:14px}
+.mini{font:inherit;font-weight:600;font-size:13px;border:3px solid var(--navy);border-radius:10px;background:var(--blue);color:#fff;padding:3px 9px;cursor:pointer}
+.mini{margin-top:5px;line-height:1.2}.mini.o{background:var(--orange)}.mini.g{background:#fff;color:var(--navy)}
+.calc{border:3px solid var(--blue);border-radius:14px;padding:10px;background:#f2fbff;margin-bottom:8px}
+.calc svg{width:100%;height:150px;background:#fff;border-radius:10px;border:2px solid #cbe9f8}
+.calc table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}
+.calc td,.calc th{border-bottom:1px solid #cbe9f8;padding:2px 4px;text-align:right}.calc th{font-size:12px;color:var(--navy)}.calc td:first-child,.calc th:first-child{text-align:left}
+.row2{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input[type=text]{font:inherit;width:84px;padding:5px 8px;border:3px solid var(--navy);border-radius:10px;text-align:right}
+input.ok{border-color:var(--green);background:#e8f9ef}input.no{border-color:var(--red);background:#ffeeea}
+.opt{display:block;border:3px solid var(--navy);border-radius:10px;padding:6px 10px;margin:5px 0;cursor:pointer;font-size:14px;background:#fff;width:100%;text-align:left;font-family:inherit}
+.opt.ok{background:#e0f7ea;border-color:var(--green)}.opt.no{background:#ffeeea;border-color:var(--red)}
+.locked{opacity:.4;pointer-events:none}
+.eq{font-weight:700;font-size:16px;background:var(--sky);border-radius:10px;padding:6px 10px;display:inline-block}
+input[type=range]{width:100%;accent-color:var(--orange)}
+.modal{position:absolute;inset:0;background:rgba(22,48,90,.6);display:none;align-items:center;justify-content:center;padding:10px;border-radius:22px;z-index:5}
+.modal.on{display:flex}
+.mcard{background:#fff;border:4px solid var(--navy);border-radius:20px;padding:12px 16px 14px;max-width:600px;width:100%;max-height:100%;overflow:auto;font-size:14.5px;line-height:1.4}
+.mcard svg{max-height:170px}.mcard h3{margin:6px 0 4px;font-size:18px}.mcard p{margin:6px 0}
+.mhead{display:flex;justify-content:space-between;color:var(--blue);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+.dsvg{width:100%;max-height:190px;display:block;margin:4px auto;background:var(--sky);border-radius:12px}
+.dt{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}.dt td,.dt th{border-bottom:1px solid #cbe9f8;padding:2px 6px;text-align:right}.dt td:first-child,.dt th:first-child{text-align:left}
+.mono{font-variant-numeric:tabular-nums}
+/* ===== Identidad visual inspirada en Focus Town: crema cálido, café, Fredoka, botones-píldora con labio 3D ===== */
+:root{--navy:#5d4037;--ink:#5d4037;--cream:#fff8e7;--cream2:#f5edd8;--brown:#83715b;--taupe:#c4b5a0;--blue:#78adfd;--blue-d:#6b8fc9;--green:#90be6d;--green-d:#6b9e4a;--orange:#ffb347;--red:#c6410d;--sky:#f5edd8}
+body{background:linear-gradient(#fee2aa,#f6f4e7 55%);color:var(--ink);background-attachment:fixed}
+canvas{border:3px solid var(--brown);border-radius:26px;box-shadow:0 8px 0 var(--brown)}
+.panel,.mcard{background:var(--cream);border:3px solid #e8ddd0;border-radius:26px;box-shadow:0 8px 0 var(--brown)}
+.brand{color:var(--brown)}
+.chip{border:2px solid var(--taupe);background:#ede4cf;color:#8b7355;border-radius:999px;box-shadow:0 2px 0 var(--taupe)}
+.chip.on{background:#5d4037;color:var(--cream);border-color:#3e2c20;box-shadow:0 2px 0 #3e2c20}
+.chip.ok{background:var(--green);color:#fff;border-color:var(--green-d);box-shadow:0 2px 0 var(--green-d)}
+.btn{background:var(--blue);color:#fff;border:2px solid var(--blue-d);border-radius:999px;padding:9px 18px;box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 4px 0 var(--blue-d);text-shadow:none}
+.btn:active{transform:translateY(3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 1px 0 var(--blue-d)}
+.btn.blue{background:var(--blue)}.btn.ghost{background:var(--cream2);color:#8b7355;border-color:var(--taupe);box-shadow:inset 0 2px 0 #fff8,0 4px 0 var(--taupe)}
+.btn.green{background:var(--green);border-color:var(--green-d);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 4px 0 var(--green-d)}
+.mini{border:2px solid var(--blue-d);border-radius:999px;box-shadow:0 2px 0 var(--blue-d)}.mini.o{background:var(--orange);border-color:#c98a2e;box-shadow:0 2px 0 #c98a2e}.mini.g{background:var(--cream2);color:#8b7355;border-color:var(--taupe);box-shadow:0 2px 0 var(--taupe)}
+.qbox{border:2px solid #4a3426;box-shadow:0 3px 0 #4a3426;text-shadow:0 2px 0 #4a3426;border-radius:12px}
+.pcard,.calc{background:var(--cream);border:2px solid var(--taupe);border-radius:20px}.calc{background:#f6f4e7;border-color:var(--blue)}
+.goal{background:#e7f3dd;border:2px dashed #9bc175;color:#486a2a;border-radius:999px;padding:7px 14px}
+.ro{background:var(--cream2);border-radius:18px;color:#5d4037}.ro td,.ro th{border-bottom:1px solid #e8ddd0}.ro b{color:#b85c38}
+.opt{border:2px solid var(--taupe);border-radius:16px;background:#fffdfc;color:#5d4037;box-shadow:0 2px 0 var(--taupe)}.opt.ok{background:#e7f3dd;border-color:#9bc175}.opt.no{background:#ffeadf;border-color:#e0825a}
+input[type=text]{border:2px solid var(--taupe);border-radius:14px;background:#fffdfc;color:#5d4037}input.ok{border-color:#90be6d;background:#e7f3dd}input.no{border-color:#e0825a;background:#ffeadf}
+input[type=range]{accent-color:#78adfd}
+.eq{background:var(--cream2);border-radius:999px;padding:6px 16px}
+.dsvg,.calc svg{background:var(--cream2)}.dt td,.dt th{border-color:#e8ddd0}
+.mhead{color:var(--brown)}.modal{background:rgba(62,44,32,.55)}
+.hint{color:#8b7355}
+/* mensajes tipo Focus Town: píldora café con texto crema que entra deslizando */
+@keyframes ft-in{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:none}}
+.fbs{border:0;border-radius:22px;box-shadow:0 12px 32px rgba(60,40,20,.28);animation:ft-in .35s cubic-bezier(.34,1.56,.64,1)}
+.fbs.bad{background:#3e2c20;color:#fbefd9}.fbs.bad b{color:#ffd9a0}.fbs.good{background:#e7f3dd;color:#486a2a;border:2px solid #9bc175}.fbs.info{background:var(--cream);color:#5d4037;border:2px solid #f5d98c}
+.fbs .x{color:currentColor;opacity:.7}
+#toast{background:#3e2c20;color:#fbefd9;box-shadow:0 8px 20px rgba(60,40,20,.3)}#toast.bad{background:var(--red)}#toast.good{background:#6b9e4a}
+@media(max-width:980px){.stage{position:sticky;top:6px;z-index:6}.app{padding:10px;gap:12px}.hint{display:none}h2{font-size:17px}.panel{padding:12px}canvas{border-radius:20px}.fbs{font-size:13.5px}}
+@media(max-width:520px){.chip{font-size:12px;padding:3px 8px}.btn{padding:8px 14px}.mcard{font-size:13.5px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage">
+    <canvas id="c" width="800" height="600" aria-label="Escena del puerto con barco y grúa"></canvas>
+    <div id="toast"></div>
+    <div id="fbs" class="fbs"></div>
+    <div id="modal" class="modal"></div>
+    <p class="hint">Mueve el mouse para llevar el gancho · clic para soltar · clic en un contenedor para retirarlo · teclado: ← → mover, Espacio soltar, F voltear, Esc cancelar.</p>
+  </div>
+  <aside class="panel" id="panel"></aside>
+</div>
+
+<script>
+/* =====================================================================
+   OPERACIÓN GRÚA · CARGA SEGURA  —  plantilla de prueba v0.1
+   Niveles: 1 masas puntuales · 2 figuras compuestas · 3 región bajo una curva
+   ===================================================================== */
+const $=s=>document.querySelector(s);
+const cvs=$('#c'),ctx=cvs.getContext('2d'),panel=$('#panel');
+const W=800,H=600,U=48,X0=462,DECK=430,OUT='#4a3426',HOOK_Y=92;
+const COLS=[['#2f6fc4','#1c4a96'],['#f7922b','#c8620f'],['#27a574','#17764f'],['#e5472e','#a82b17']];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt=(v,d=2)=>{let s=(+v).toFixed(d);if(/^-0\.?0*$/.test(s))s=s.slice(1);return s.replace('.',',')};
+const fmtP=(v,d=2)=>fmt(v,d).replace(',','.');          // con punto (para tablas compactas)
+const num=s=>{s=String(s).trim().replace(',','.');const m=s.match(/^(-?[\d.]+)\s*\/\s*([\d.]+)$/);return m?parseFloat(m[1])/parseFloat(m[2]):parseFloat(s)};
+const close=(v,t)=>Math.abs(v-t)<=Math.max(0.02,Math.abs(t)*0.015);
+
+/* ---------- Piezas compuestas (Nivel 2) ---------- */
+const R=(x,y,w,h,sign,name)=>({sign,name,A:w*h,c:[x+w/2,y+h/2],poly:[[x,y],[x+w,y],[x+w,y+h],[x,y+h]]});
+const Tri=(a,b,c,name)=>({sign:1,name,A:Math.abs((b[0]-a[0])*(c[1]-a[1])-(c[0]-a[0])*(b[1]-a[1]))/2,c:[(a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3],poly:[a,b,c]});
+const Circ=(cx,cy,r,sign,name)=>({sign,name,A:Math.PI*r*r,c:[cx,cy],poly:Array.from({length:40},(_,i)=>[cx+r*Math.cos(i/40*2*Math.PI),cy+r*Math.sin(i/40*2*Math.PI)])});
+const Semi=(cx,cy,r,name)=>({sign:1,name,A:Math.PI*r*r/2,c:[cx,cy+4*r/(3*Math.PI)],poly:Array.from({length:41},(_,i)=>[cx+r*Math.cos(Math.PI*i/40),cy+r*Math.sin(Math.PI*i/40)])});
+function mkPiece(name,ci,parts){
+  const pos=parts.filter(p=>p.sign>0).flatMap(p=>p.poly);
+  const W=Math.max(...pos.map(p=>p[0])),Hh=Math.max(...pos.map(p=>p[1]));
+  const A=parts.reduce((s,p)=>s+p.sign*p.A,0);
+  const cx=parts.reduce((s,p)=>s+p.sign*p.A*p.c[0],0)/A,cy=parts.reduce((s,p)=>s+p.sign*p.A*p.c[1],0)/A;
+  return{name,ci,parts,W,H:Hh,A,cx,cy};
+}
+const pathD=(p,flip)=>p.parts.map(q=>'M'+q.poly.map(([x,y])=>`${(flip?p.W-x:x).toFixed(4)} ${(p.H-y).toFixed(4)}`).join('L')+'Z').join('');
+
+/* ---------- Definición de etapas ---------- */
+const mkQ=ms=>ms.map((m,i)=>({uid:'q'+i,m}));
+const stages=[
+ {tag:'1.1',type:'points',title:'Nivel 1 · Masas puntuales',
+  brief:'El barco ya lleva carga fija. Sube los contenedores restantes (cada uno en una columna) para que el <b>centro de masa x̄</b> quede en la bandera verde. Cada columna está a 1 m de la siguiente; la masa va en toneladas.',
+  fixed:[{m:4,c:-3,r:0},{m:2,c:2,r:0}],queue:[3,5],useY:false,ref:[{m:5,c:-1,r:0},{m:3,c:2,r:1}]},
+ {tag:'1.2',type:'points',title:'Nivel 1 · Masas puntuales (2D)',
+  brief:'Ahora cuenta también la altura: apilar sube el centro de masa. Lleva <b>(x̄, ȳ)</b> al punto marcado. ȳ se mide desde la cubierta hasta el centro de cada contenedor (0,5 m, 1,5 m, 2,5 m…).',
+  fixed:[{m:3,c:-4,r:0},{m:3,c:-4,r:1},{m:2,c:3,r:0}],queue:[2,4,6],useY:true,ref:[{m:6,c:1,r:0},{m:4,c:3,r:1},{m:2,c:-2,r:0}]},
+ {tag:'2.1',type:'shapes',title:'Nivel 2 · Figuras compuestas',
+  brief:'Placas de acero de densidad uniforme (1 t/m²). Primero <b>calcula el centroide</b> de cada pieza descomponiéndola en figuras simples; luego izala y colócala para que el centro de masa total quede en el objetivo.',
+  pieces:[mkPiece('Placa en L',1,[R(0,0,3,1,1,'Base 3×1'),R(0,1,1,2,1,'Columna 1×2')]),
+          mkPiece('Placa con agujero',0,[R(0,0,2,2,1,'Placa 2×2'),Circ(1,1,0.5,-1,'Agujero r = 0,5')]),
+          mkPiece('Placa triangular',3,[Tri([0,0],[3,0],[0,2],'Triángulo b=3, h=2')])],
+  target:1},
+ {tag:'2.2',type:'shapes',title:'Nivel 2 · Figuras compuestas (II)',
+  brief:'Otra carga, otras formas: una T, un semicírculo y una placa con un agujero descentrado. Recuerda: el agujero cuenta como <b>área negativa</b>. El semicírculo tiene ȳ = 4r/(3π).',
+  pieces:[mkPiece('Placa en T',2,[R(0,2,3,1,1,'Ala 3×1'),R(1,0,1,2,1,'Alma 1×2')]),
+          mkPiece('Semicírculo',1,[Semi(1.5,0,1.5,'Semicírculo r = 1,5')]),
+          mkPiece('Placa con agujero',3,[R(0,0,2,1.5,1,'Placa 2×1,5'),Circ(0.7,0.75,0.4,-1,'Agujero r = 0,4')])],
+  target:0.5},
+ ...[
+  {tag:'3.1',label:'y = 4 − x²  y  y = 0',F:'4 − x²',G:'0',f:x=>4-x*x,g:()=>0,a:-2,b:2,ex:{A:32/3,My:0,Mx:256/15,x:0,y:1.6},exs:{A:'32/3',My:'0',Mx:'256/15',x:'0',y:'8/5'},
+   brief:'Una placa de refuerzo ocupa la región bajo <b>y = 4 − x²</b>. Calcula su centroide y coloca la argolla justo encima para que cuelgue nivelada.'},
+  {tag:'3.2',label:'y = x  y  y = x²',F:'x',G:'x²',f:x=>x,g:x=>x*x,a:0,b:1,ex:{A:1/6,My:1/12,Mx:1/15,x:0.5,y:0.4},exs:{A:'1/6',My:'1/12',Mx:'1/15',x:'1/2',y:'2/5'},
+   brief:'Pieza cortada con láser entre la recta <b>y = x</b> y la parábola <b>y = x²</b>. Sin simetría: hacen falta las dos integrales.'},
+  {tag:'3.3',label:'y = √x,  y = 0,  x ∈ [0, 4]',F:'√x',G:'0',f:x=>Math.sqrt(x),g:()=>0,a:0,b:4,ex:{A:16/3,My:64/5,Mx:4,x:2.4,y:0.75},exs:{A:'16/3',My:'64/5',Mx:'4',x:'12/5',y:'3/4'},
+   brief:'Perfil bajo <b>y = √x</b> entre x = 0 y x = 4. Cuidado: la placa es más ancha que alta, y el centroide no está en el centro geométrico.'}
+ ].map(c=>({...c,type:'curve',title:'Nivel 3 · Región bajo una curva'}))
+];
+
+/* ---------- Estado ---------- */
+const S={si:0,done:{},ss:{},hookX:X0,mx:X0,my:200,ang:0,guide:true};
+const SS=()=>S.ss[S.si]||(S.ss[S.si]=initStage(stages[S.si]));
+function initStage(st){
+  if(st.type==='points'){
+    const t=cmOf([...st.fixed.map(f=>({m:f.m,x:f.c,y:f.r+.5})),...st.ref.map(f=>({m:f.m,x:f.c,y:f.r+.5}))]);
+    st.target={x:+t.x.toFixed(2),y:+t.y.toFixed(2)};
+    return{items:st.fixed.map((f,i)=>({...f,fixed:true,uid:'f'+i,fall:0,vy:0})),queue:mkQ(st.queue),held:null};
+  }
+  if(st.type==='shapes')return{ps:st.pieces.map(()=>({solved:false,placed:false,flip:false})),items:[],held:null,calc:null};
+  const v=st.ex,Hr=yRange(st);
+  return{step:0,mcq:null,calcOK:false,ax:st.a+0.2*(st.b-st.a),th:0,w:0,lower:0,done:false,shuffle:[0,1,2,3].sort((i,j)=>((i*7+st.a*3+2)%5)-((j*7+st.a*3+2)%5))};
+}
+function cmOf(pts){const M=pts.reduce((s,p)=>s+p.m,0);return{M,x:pts.reduce((s,p)=>s+p.m*p.x,0)/M,y:pts.reduce((s,p)=>s+p.m*p.y,0)/M}}
+function yRange(st){let lo=1e9,hi=-1e9;for(let i=0;i<=100;i++){const x=st.a+(st.b-st.a)*i/100;lo=Math.min(lo,st.g(x));hi=Math.max(hi,st.f(x))}return{lo,hi}}
+const simp=(fn,a,b,n=2000)=>{const h=(b-a)/n;let s=fn(a)+fn(b);for(let i=1;i<n;i++)s+=fn(a+i*h)*(i%2?4:2);return s*h/3};
+
+/* puntos de masa actuales de la etapa */
+function points(){
+  const st=stages[S.si],ss=SS();
+  if(st.type==='points')return ss.items.map(i=>({m:i.m,x:i.c,y:i.r+.5}));
+  if(st.type==='shapes')return ss.items.map(i=>{const p=st.pieces[i.pid];return{m:p.A,x:i.L+(i.flip?p.W-p.cx:p.cx),y:p.cy}});
+  return[];
+}
+
+/* =====================================================================
+   DIBUJO
+   ===================================================================== */
+let T=0;
+function cloud(x,y,s){ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle='#fff';ctx.strokeStyle='#cfeefc';ctx.lineWidth=3;
+  ctx.beginPath();ctx.arc(30,36,24,0,7);ctx.arc(66,24,30,0,7);ctx.arc(104,38,22,0,7);ctx.rect(30,36,76,22);ctx.fill();ctx.restore()}
+function drawSky(){
+  const g=ctx.createLinearGradient(0,0,0,470);g.addColorStop(0,'#7cc4f0');g.addColorStop(1,'#fde8b8');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  [[80,30,1,6],[560,150,.8,4],[300,250,.6,3]].forEach(([x,y,s,v])=>cloud(((x+T*v+120)%(W+260))-160,y,s));
+}
+function drawSea(){
+  const g=ctx.createLinearGradient(0,470,0,H);g.addColorStop(0,'#2d90e3');g.addColorStop(1,'#1c6fc4');ctx.fillStyle=g;ctx.fillRect(0,470,W,H-470);
+  ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=3;ctx.lineCap='round';
+  for(let r=0;r<3;r++){const y=500+r*34;for(let x=-60+((r*37+T*14*(r%2?-1:1))%80);x<W;x+=80){ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+20,y-7,x+40,y);ctx.stroke()}}
+}
+function drawFrontWave(){
+  ctx.fillStyle='rgba(38,136,220,.92)';ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(0,512);
+  for(let x=0;x<=W;x+=20)ctx.lineTo(x,512+Math.sin(x/38+T*1.7)*4);ctx.lineTo(W,H);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=3;ctx.beginPath();for(let x=0;x<=W;x+=20)ctx[x?'lineTo':'moveTo'](x,512+Math.sin(x/38+T*1.7)*4);ctx.stroke();
+}
+const SHIPS=[['#a0714a','#c28d5c','#fff8e7','#7a4f2e','#78adfd'],['#4a90d9','#78adfd','#fff8e7','#3a6fb0','#ffefd6'],['#5f9a58','#90be6d','#fff8e7','#46763f','#78adfd'],['#c6410d','#e8743a','#fff8e7','#9e340a','#ffefd6'],['#6c5a8c','#8f7cb4','#fff8e7','#54456f','#f9d79d'],['#2d8a8a','#4ecdc4','#fff8e7','#216868','#f9d79d'],['#5d4037','#83715b','#fff8e7','#3e2c20','#f9d79d']];
+/* ---- el capitán: muñeco chibi de cabeza grande, anteojos redondos y gorra ---- */
+function shipToScreen(lx,ly){const p=pose(),b=Math.sin(T*1.6)*2,r=S.ang+p.rot,s=Math.max(p.sc,.001),u=(lx-X0)*s,v=(ly-500+b)*s;return[X0+p.dx+u*Math.cos(r)-v*Math.sin(r),500+p.dy+u*Math.sin(r)+v*Math.cos(r)]}
+function captainMood(){const a=S.anim,st=stages[S.si];
+  if(a){if(a.k==='capsize')return a.t>(a.dt||1000)?'dead':'panic';if(a.k==='sail')return'cheer';return'ok'}
+  if(st.type==='curve'){const ss=SS();return ss.done?'cheer':Math.abs(ss.deg||0)>8?'worry':'ok'}
+  const p=points();if(p.length){const c=cmOf(p),xt=st.type==='points'?st.target.x:st.target;if(Math.abs(c.x-xt)>0.8)return'worry'}return'ok'}
+function drawCaptain(mood){
+  const blink=(T%3.2)>3.05,bob=mood==='ok'||mood==='worry'?Math.sin(T*3)*1.3:mood==='panic'?Math.sin(T*28)*2.2:0;
+  ctx.save();ctx.translate(150,336);ctx.lineJoin='round';ctx.lineCap='round';
+  if(mood==='dead'){ctx.rotate(-1.5);ctx.translate(0,2)}
+  ctx.translate(0,bob);ctx.strokeStyle=OUT;
+  const up=mood==='panic'||mood==='cheer',fl=Math.sin(T*(mood==='panic'?26:9))*(up?8:0);
+  ctx.lineWidth=7;ctx.strokeStyle=OUT;[[-1],[1]].forEach(([s])=>{ctx.beginPath();ctx.moveTo(s*12,-20);ctx.lineTo(s*(up?24:18),up?-42+fl*s:-8);ctx.stroke()});
+  ctx.lineWidth=4;ctx.strokeStyle='#3a5a8c';[[-1],[1]].forEach(([s])=>{ctx.beginPath();ctx.moveTo(s*12,-20);ctx.lineTo(s*(up?24:18),up?-42+fl*s:-8);ctx.stroke()});
+  ctx.lineWidth=3;ctx.strokeStyle=OUT;ctx.fillStyle='#3a5a8c';ctx.beginPath();ctx.roundRect(-13,-28,26,28,8);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#f9d79d';ctx.beginPath();ctx.arc(0,-17,2.6,0,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#f3cba5';ctx.beginPath();ctx.arc(0,-46,19,0,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#8b5a3c';ctx.beginPath();ctx.arc(-19,-45,4,0,7);ctx.arc(19,-45,4,0,7);ctx.fillStyle='#f3cba5';ctx.fill();ctx.stroke();
+  ctx.fillStyle='#fff8e7';ctx.beginPath();ctx.roundRect(-17,-68,34,17,[10,10,3,3]);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#5d4037';ctx.beginPath();ctx.roundRect(-21,-54,42,6,3);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#f9d79d';ctx.beginPath();ctx.arc(0,-61,3.4,0,7);ctx.fill();ctx.stroke();
+  ctx.lineWidth=2.5;ctx.fillStyle='rgba(255,255,255,.45)';[-8,8].forEach(x=>{ctx.beginPath();ctx.arc(x,-45,6.5,0,7);ctx.fill();ctx.stroke()});ctx.beginPath();ctx.moveTo(-1.5,-45);ctx.lineTo(1.5,-45);ctx.stroke();
+  ctx.fillStyle=OUT;ctx.strokeStyle=OUT;
+  if(mood==='dead'){ctx.lineWidth=2.5;[-8,8].forEach(x=>{ctx.beginPath();ctx.moveTo(x-3,-48);ctx.lineTo(x+3,-42);ctx.moveTo(x+3,-48);ctx.lineTo(x-3,-42);ctx.stroke()})}
+  else if(blink){ctx.lineWidth=2.5;[-8,8].forEach(x=>{ctx.beginPath();ctx.moveTo(x-3,-45);ctx.lineTo(x+3,-45);ctx.stroke()})}
+  else[-8,8].forEach(x=>{ctx.beginPath();ctx.arc(x+(mood==='worry'?-1:0),-45,mood==='panic'?3.2:2.4,0,7);ctx.fill()});
+  ctx.lineWidth=2.5;ctx.fillStyle='#8a3b2a';
+  if(mood==='worry'){ctx.beginPath();ctx.moveTo(-14,-54);ctx.lineTo(-4,-52);ctx.moveTo(14,-54);ctx.lineTo(4,-52);ctx.stroke();ctx.beginPath();ctx.moveTo(-4,-34);ctx.quadraticCurveTo(0,-37,4,-34);ctx.stroke();ctx.fillStyle='#78adfd';ctx.beginPath();ctx.moveTo(18,-58);ctx.quadraticCurveTo(24,-48,18,-46);ctx.quadraticCurveTo(12,-48,18,-58);ctx.fill()}
+  else if(mood==='panic'){ctx.beginPath();ctx.ellipse(0,-33,4,5.5,0,0,7);ctx.fill();ctx.stroke()}
+  else if(mood==='dead'){ctx.beginPath();ctx.moveTo(-4,-34);ctx.lineTo(4,-34);ctx.stroke()}
+  else if(mood==='cheer'){ctx.beginPath();ctx.arc(0,-36,6,0.1,Math.PI-0.1);ctx.closePath();ctx.fill();ctx.stroke()}
+  else{ctx.beginPath();ctx.arc(0,-38,5,0.2,Math.PI-0.2);ctx.stroke()}
+  ctx.restore()}
+function drawGhost(a){if(a.gx==null)return;const u=(a.t-a.dt)/1000,y=a.gy-u*70,x=a.gx+Math.sin(u*5)*10,al=Math.max(0,1-u/1.9);if(al<=0)return;
+  ctx.save();ctx.globalAlpha=al;ctx.translate(x,y);ctx.lineWidth=3;ctx.strokeStyle='#8b7355';ctx.fillStyle='#fffdf5';
+  ctx.beginPath();ctx.moveTo(-16,16);ctx.lineTo(-16,-6);ctx.arc(0,-6,16,Math.PI,0);ctx.lineTo(16,16);ctx.lineTo(8,10);ctx.lineTo(0,16);ctx.lineTo(-8,10);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#5d4037';ctx.beginPath();ctx.arc(-6,-6,2.5,0,7);ctx.arc(6,-6,2.5,0,7);ctx.fill();ctx.beginPath();ctx.ellipse(0,3,3,4,0,0,7);ctx.fill();
+  ctx.strokeStyle='#e3b873';ctx.lineWidth=3.5;ctx.beginPath();ctx.ellipse(0,-30,10,3.5,0,0,7);ctx.stroke();ctx.restore()}
+function drawShip(){
+  ctx.lineJoin='round';const P=SHIPS[S.si%SHIPS.length];
+  // casco
+  ctx.fillStyle=P[0];ctx.strokeStyle=OUT;ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(108,430);ctx.lineTo(684,430);ctx.lineTo(700,406);ctx.quadraticCurveTo(704,500,612,530);ctx.lineTo(205,530);ctx.quadraticCurveTo(132,516,108,430);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle=P[1];ctx.beginPath();ctx.moveTo(114,430);ctx.lineTo(684,430);ctx.lineTo(692,444);ctx.lineTo(122,444);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.12)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(190,476);ctx.lineTo(640,476);ctx.stroke();
+  // cabina
+  ctx.lineWidth=4;ctx.strokeStyle=OUT;
+  ctx.fillStyle=P[2];ctx.beginPath();ctx.roundRect(120,336,106,94,4);ctx.fill();ctx.stroke();
+  ctx.fillStyle='rgba(0,0,0,.08)';ctx.fillRect(124,404,98,22);
+  ctx.fillStyle=P[3];ctx.beginPath();ctx.roundRect(160,308,52,28,8);ctx.fill();ctx.stroke();
+  ctx.fillStyle=P[4];[[136,356],[166,356],[196,356]].forEach(([x,y])=>{ctx.beginPath();ctx.roundRect(x,y,20,20,3);ctx.fill();ctx.lineWidth=3;ctx.stroke()});
+  // marcas de columnas
+  ctx.fillStyle='rgba(255,255,255,.9)';ctx.font='600 12px Fredoka,sans-serif';ctx.textAlign='center';
+  for(let i=-4;i<=4;i++)ctx.fillText(i,X0+i*U,440);
+  ctx.fillStyle='#f5b84a';ctx.fillRect(X0-2,431,4,5);
+}
+function drawBox(x,y,ci,label,alpha=1){
+  const[f,d]=COLS[ci];ctx.save();ctx.globalAlpha=alpha;ctx.lineJoin='round';
+  ctx.fillStyle=f;ctx.beginPath();ctx.roundRect(x+1,y+1,U-2,U-2,4);ctx.fill();
+  ctx.fillStyle=d;for(let i=1;i<=4;i++)ctx.fillRect(x+i*U/5-2,y+6,3.5,U-12);
+  ctx.strokeStyle=OUT;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x+1,y+1,U-2,U-2,4);ctx.stroke();
+  ctx.font='700 15px Fredoka,sans-serif';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle=OUT;ctx.strokeText(label,x+U/2,y+U/2+5);ctx.fillStyle='#fff';ctx.fillText(label,x+U/2,y+U/2+5);ctx.restore();
+}
+function drawPiece(p,left,top,flip,alpha=1,solved=false){
+  const[f,d]=COLS[p.ci];ctx.save();ctx.globalAlpha=alpha;ctx.translate(left,top);ctx.scale(U,U);
+  const path=new Path2D(pathD(p,flip));ctx.fillStyle=f;ctx.fill(path,'evenodd');
+  ctx.lineWidth=3/U;ctx.strokeStyle=OUT;ctx.lineJoin='round';ctx.stroke(path);ctx.restore();
+  if(solved){const cx=left+(flip?p.W-p.cx:p.cx)*U,cy=top+(p.H-p.cy)*U;ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle='#fff';ctx.strokeStyle=OUT;ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,6,0,7);ctx.fill();ctx.stroke();ctx.restore()}
+}
+function drawCrane(hx,hy,slingPts){
+  ctx.lineCap='round';ctx.strokeStyle=OUT;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(hx,-6);ctx.lineTo(hx,hy-14);ctx.stroke();
+  if(slingPts){ctx.lineWidth=4;ctx.beginPath();slingPts.forEach(([x,y])=>{ctx.moveTo(hx,hy+8);ctx.lineTo(x,y)});ctx.stroke()}
+  ctx.fillStyle='#b97a3d';ctx.lineWidth=4;ctx.beginPath();ctx.arc(hx,hy,16,0,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#f5c15a';ctx.beginPath();ctx.arc(hx,hy,6,0,7);ctx.fill();ctx.lineWidth=3;ctx.stroke();
+}
+function flag(x,yBase,label,col){
+  ctx.save();ctx.strokeStyle=col;ctx.lineWidth=3;ctx.setLineDash([6,5]);ctx.beginPath();ctx.moveTo(x,yBase);ctx.lineTo(x,yBase-185);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=col;ctx.strokeStyle=OUT;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,yBase-185);ctx.lineTo(x+54,yBase-172);ctx.lineTo(x,yBase-159);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font='700 11px Fredoka,sans-serif';ctx.textAlign='left';ctx.fillText(label,x+5,yBase-168);ctx.restore();
+}
+function target(x,y,col){ctx.save();ctx.strokeStyle=col;ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,13,0,7);ctx.moveTo(x-20,y);ctx.lineTo(x+20,y);ctx.moveTo(x,y-20);ctx.lineTo(x,y+20);ctx.stroke();ctx.restore()}
+function cgDot(x,y,ok){ctx.save();ctx.fillStyle=ok?'#27a574':'#f7922b';ctx.strokeStyle=OUT;ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,9,0,7);ctx.fill();ctx.stroke();ctx.fillStyle='#fff';ctx.fillRect(x-5,y-1.5,10,3);ctx.fillRect(x-1.5,y-5,3,10);ctx.restore()}
+
+/* geometría de colocación */
+const holdTargetX=()=>S.mx;
+function carryGeom(){
+  const st=stages[S.si],ss=SS();if(!ss.held)return null;
+  if(st.type==='points'){const c=clamp(Math.round((S.mx-X0)/U),-4,4);return{c,hx:X0+c*U}}
+  const p=st.pieces[ss.held.pid];let L=Math.round((S.mx-X0)/U*2-p.W)/2; // snap 0.5
+  L=clamp(Math.round(((S.mx-X0)/U-p.W/2)*2)/2,-4.5,4.5-p.W);return{L,hx:X0+(L+p.W/2)*U,p}
+}
+const canPlace=(L,w,ignore)=>SS().items.every(i=>i.pid===ignore||L+w<=i.L+0.0001||L>=i.L+stages[S.si].pieces[i.pid].W-0.0001);
+
+const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
+function pose(){const a=S.anim;if(!a)return{dx:0,dy:0,rot:0,sc:1};
+  if(a.k==='sail')return{dx:-ease(a.t/2200)*1000,dy:0,rot:Math.sin(a.t/300)*0.02,sc:1};      // zarpa hacia la izquierda
+  if(a.k==='arrive')return{dx:(1-ease(a.t/1600))*1000,dy:0,rot:0,sc:1};                     // el siguiente llega desde la derecha
+  if(a.k==='capsize'){const t=a.t,h=a.h;let dx=0,dy=0,rot=0,sc=1;
+    if(h==='iceberg'){const e1=ease(t/900),p=ease((t-900)/1500);dx=55*e1;rot=-0.3*e1*(1-p)-1.1*p;dy=160*p}
+    else if(h==='wave'){const p=ease((t-700)/1400);dx=-90*p;rot=-1.4*p;dy=190*p}
+    else if(h==='whale'){sc=1-ease((t-950)/300)}
+    else if(h==='eagle'){const p=ease((t-900)/1500);dx=-(X0+260)*p;dy=-640*p;rot=0.12*Math.sin(t/120)*p;sc=1-0.35*p}
+    return{dx,dy,rot,sc}}
+  return{dx:0,dy:0,rot:0,sc:1}}
+/* ---- peligros: iceberg · ballena · ola gigante · águila ---- */
+function drawWhale(t){const u=clamp((t-300)/2000,0,1);if(u<=0||u>=1)return;
+  const x=X0+560-u*1150,y=545-300*Math.sin(Math.PI*u),vy=-300*Math.PI*Math.cos(Math.PI*u)/2000*1000;
+  ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(-vy,1150)*0.9);ctx.lineJoin='round';
+  ctx.fillStyle='#3b6fb0';ctx.strokeStyle=OUT;ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(-90,0);ctx.bezierCurveTo(-90,-45,-30,-55,40,-40);ctx.bezierCurveTo(90,-30,110,-10,130,-40);ctx.lineTo(150,-58);ctx.lineTo(138,-20);ctx.lineTo(165,-4);ctx.lineTo(125,10);ctx.bezierCurveTo(100,32,-20,52,-70,32);ctx.bezierCurveTo(-90,22,-90,10,-90,0);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#e8f4fb';ctx.beginPath();ctx.moveTo(-84,14);ctx.bezierCurveTo(-60,32,-10,44,60,24);ctx.bezierCurveTo(20,44,-60,46,-86,26);ctx.closePath();ctx.fill();
+  if(t>800&&t<1350){ctx.fillStyle='#7a1f2a';ctx.beginPath();ctx.moveTo(-90,0);ctx.lineTo(-30,-6);ctx.lineTo(-38,34);ctx.lineTo(-82,30);ctx.closePath();ctx.fill();ctx.stroke()}
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-55,-14,6,0,7);ctx.fill();ctx.fillStyle=OUT;ctx.beginPath();ctx.arc(-57,-14,3,0,7);ctx.fill();
+  ctx.restore()}
+function drawIceberg(t){const s=ease(t/700);if(s<=0)return;ctx.save();ctx.translate(735,512);ctx.scale(s,s);ctx.lineJoin='round';ctx.lineWidth=4;ctx.strokeStyle=OUT;
+  ctx.fillStyle='#f2fbff';ctx.beginPath();ctx.moveTo(-70,0);ctx.lineTo(-42,-62);ctx.lineTo(-18,-42);ctx.lineTo(18,-118);ctx.lineTo(52,-46);ctx.lineTo(80,0);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#c7e7f7';ctx.beginPath();ctx.moveTo(18,-118);ctx.lineTo(52,-46);ctx.lineTo(80,0);ctx.lineTo(20,0);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
+function drawWave(t){const x=W+260-(t/2300)*(W+1000);ctx.save();ctx.translate(x,0);ctx.lineJoin='round';
+  ctx.fillStyle='#1f78d1';ctx.strokeStyle=OUT;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(0,600);ctx.bezierCurveTo(-20,450,30,330,150,290);ctx.bezierCurveTo(250,265,310,330,300,410);ctx.lineTo(420,600);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#fff';ctx.globalAlpha=.9;ctx.beginPath();ctx.moveTo(30,380);ctx.bezierCurveTo(60,320,130,285,190,285);ctx.bezierCurveTo(130,310,100,340,90,390);ctx.closePath();ctx.fill();ctx.globalAlpha=1;ctx.restore()}
+function drawEagle(t){let ex,ey;const po=pose();
+  if(t<900){const u=ease(t/900);ex=W+80+(175-(W+80))*u;ey=-40+(272+40)*u}else{ex=175+po.dx;ey=272+po.dy}
+  const f=Math.sin(t/70)*0.5;ctx.save();ctx.translate(ex,ey);ctx.lineJoin='round';ctx.lineWidth=4;ctx.strokeStyle=OUT;
+  ctx.fillStyle='#7a4a21';[[1,1],[1,-0.7]].forEach(([_,k])=>{ctx.beginPath();ctx.moveTo(-8,-4);ctx.lineTo(-78,-34+f*48*k);ctx.lineTo(-30,6);ctx.closePath();ctx.fill();ctx.stroke()});
+  ctx.beginPath();ctx.ellipse(0,0,30,15,0,0,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-30,-8,12,0,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#f5b84a';ctx.beginPath();ctx.moveTo(-40,-9);ctx.lineTo(-58,-3);ctx.lineTo(-40,0);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle=OUT;ctx.beginPath();ctx.arc(-33,-11,2.5,0,7);ctx.fill();
+  ctx.strokeStyle='#f5b84a';ctx.beginPath();ctx.moveTo(-6,14);ctx.lineTo(-10,34);ctx.moveTo(8,14);ctx.lineTo(10,34);ctx.stroke();ctx.restore()}
+function drawHazardBack(){const a=S.anim;if(!a||a.k!=='capsize')return;if(a.h==='whale')drawWhale(a.t);if(a.h==='iceberg')drawIceberg(a.t)}
+function drawHazardFront(){const a=S.anim;if(!a||a.k!=='capsize')return;drawGhost(a);if(a.h==='wave')drawWave(a.t);if(a.h==='eagle')drawEagle(a.t)}
+/* ---- partículas y sonido ---- */
+const PT=[];
+function burst(x,y,n,cols,spd,up){for(let i=0;i<n;i++)PT.push({x,y,vx:(Math.random()-.5)*spd,vy:-Math.random()*up-1,l:1,col:cols[i%cols.length],r:2+Math.random()*3,g:.3})}
+function confetti(){const cs=['#f7922b','#e5472e','#2f9be8','#27a574','#ffd23f','#fff'];for(let i=0;i<90;i++)PT.push({x:Math.random()*W,y:-20-Math.random()*80,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,l:2,col:cs[i%6],r:5,g:.04,rect:true})}
+function drawParticles(){PT.forEach(p=>{ctx.globalAlpha=Math.min(1,p.l);ctx.fillStyle=p.col;if(p.rect)ctx.fillRect(p.x,p.y,p.r*1.6,p.r);else{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()}});ctx.globalAlpha=1}
+let AC=null;const ac=()=>{if(!AC)try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}return AC};
+function tone(f,d,type='sine',v=.14,t0=0,f2){const c=ac();if(!c||S.mute)return;const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+t0;o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d)}
+function noise(d,v=.2){const c=ac();if(!c||S.mute)return;const b=c.createBuffer(1,c.sampleRate*d,c.sampleRate),a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=(Math.random()*2-1)*(1-i/a.length);const s=c.createBufferSource(),g=c.createGain(),f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=1400;g.gain.value=v;s.buffer=b;s.connect(f);f.connect(g);g.connect(c.destination);s.start()}
+const SFX={pick:()=>tone(520,.08,'triangle',.12,0,780),drop:()=>{tone(130,.14,'square',.1,0,60);noise(.08,.1)},ok:()=>[523,659,784,1046].forEach((f,i)=>tone(f,.2,'triangle',.13,i*.09)),bad:()=>tone(320,.8,'sawtooth',.1,0,60),splash:()=>noise(.7,.28),ding:()=>{tone(880,.15,'sine',.14);tone(1320,.25,'sine',.1,.1)},wrong:()=>tone(170,.18,'square',.09),whoosh:()=>noise(.6,.14),screech:()=>tone(1500,.4,'sawtooth',.05,0,800)};
+addEventListener('pointerdown',()=>{ac()?.resume()});
+function draw(){
+  const st=stages[S.si],ss=SS();
+  drawSky();drawSea();
+  const pts=points(),cm=pts.length?cmOf(pts):null;
+  // barco + carga (con escora)
+  const po=pose();
+  ctx.save();ctx.translate(X0+po.dx,500+po.dy);ctx.rotate(S.ang+po.rot);ctx.scale(Math.max(po.sc,0.001),Math.max(po.sc,0.001));ctx.translate(-X0,-500+Math.sin(T*1.6)*2);
+  drawShip();drawCaptain(captainMood());
+  if(st.type==='points'||st.type==='shapes'){
+    const txv=st.type==='points'?st.target.x:st.target;
+    ctx.save();
+    if(st.type==='points'&&st.useY)target(X0+st.target.x*U,DECK-st.target.y*U,'#27a574');else flag(X0+txv*U,DECK,'x̄*','#27a574');
+    ctx.restore();
+  }
+  if(st.type==='points')ss.items.forEach(i=>drawBox(X0+i.c*U-U/2,DECK-(i.r+1)*U-i.fall,i.m%4,i.m+' t'));
+  if(st.type==='shapes')ss.items.forEach(i=>{const p=st.pieces[i.pid];drawPiece(p,X0+i.L*U,DECK-p.H*U-i.fall,i.flip,1,ss.ps[i.pid].solved)});
+  if(cm){
+    const tol=0.06,xt=st.type==='points'?st.target.x:st.target;
+    const ok=Math.abs(cm.x-xt)<=tol&&(!(st.type==='points'&&st.useY)||Math.abs(cm.y-st.target.y)<=tol);
+    cgDot(X0+cm.x*U,DECK-(st.type==='points'&&st.useY?cm.y:1.2)*U*1,ok);
+  }
+  // fantasma de aterrizaje
+  const g=carryGeom();
+  if(g&&st.type==='points'){const h=ss.items.filter(i=>i.c===g.c).length;if(h<3)drawBox(X0+g.c*U-U/2,DECK-(h+1)*U,ss.held.m%4,ss.held.m+' t',.4)}
+  if(g&&st.type==='shapes'){const ok=canPlace(g.L,g.p.W,ss.held.pid);drawPiece(g.p,X0+g.L*U,DECK-g.p.H*U,ss.ps[ss.held.pid].flip,ok?.4:.15)}
+  ctx.restore();
+  // peligros (parte trasera) y olas frontales
+  drawHazardBack();
+  drawFrontWave();
+  drawHazardFront();
+  // grúa
+  if(st.type==='curve')drawCurve(st,ss);
+  else{
+    const hold=g,tx=hold?hold.hx:clamp(S.mx,180,740);S.hookX+=(tx-S.hookX)*.22;
+    let sl=null;
+    if(hold&&st.type==='points'){drawCrane(S.hookX,HOOK_Y,[[S.hookX-U/2+4,HOOK_Y+60],[S.hookX+U/2-4,HOOK_Y+60]]);drawBox(S.hookX-U/2,HOOK_Y+60,ss.held.m%4,ss.held.m+' t')}
+    else if(hold){const p=hold.p,left=S.hookX-p.W*U/2,top=HOOK_Y+62;drawCrane(S.hookX,HOOK_Y,[[left+6,top],[left+p.W*U-6,top]]);drawPiece(p,left,top,ss.ps[ss.held.pid].flip,1,ss.ps[ss.held.pid].solved)}
+    else drawCrane(S.hookX,HOOK_Y,null);
+  }
+}
+
+/* ---- Nivel 3: placa colgada ---- */
+function plateGeom(st){
+  const{lo,hi}=yRange(st),Wd=st.b-st.a,Ht=hi-lo,s=Math.min(230/Wd,140/Ht),hp=44/s;
+  return{lo,hi,s,Pyl:hi+hp,hp};
+}
+function plateTheta(st,ss){const g=plateGeom(st),v=st.ex;return -Math.PI/2-Math.atan2(v.y-g.Pyl,v.x-ss.ax)}
+function drawCurve(st,ss){
+  const sailing=S.anim&&S.anim.k==='sail',g=plateGeom(st),PX=X0+(sailing?pose().dx:0),PY0=196,P_Y=PY0+ss.lower;
+  const tt=plateTheta(st,ss);ss.w+=(-0.07*(ss.th-tt)-0.07*ss.w);ss.th+=ss.w;
+  // altura de descenso objetivo
+  if(ss.done){const goal=DECK-(PY0+g.s*(g.Pyl-g.lo))-1;ss.lower+=(goal-ss.lower)*.05}
+  const th=ss.th,c=Math.cos(th),sn=Math.sin(th);
+  const tr=(x,y)=>{const u=x-ss.ax,v=y-g.Pyl;return[PX+g.s*(u*c-v*sn),P_Y-g.s*(u*sn+v*c)]};
+  // cable
+  if(!sailing){ctx.strokeStyle=OUT;ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(PX,-6);ctx.lineTo(PX,P_Y-14);ctx.stroke()}
+  // placa
+  const N=60,top=[],bot=[];for(let i=0;i<=N;i++){const x=st.a+(st.b-st.a)*i/N;top.push(tr(x,st.f(x)));bot.push(tr(x,st.g(x)))}
+  ctx.beginPath();top.forEach(([x,y],i)=>ctx[i?'lineTo':'moveTo'](x,y));bot.reverse().forEach(([x,y])=>ctx.lineTo(x,y));ctx.closePath();
+  ctx.fillStyle='#f7922b';ctx.fill();ctx.strokeStyle=OUT;ctx.lineWidth=4;ctx.lineJoin='round';ctx.stroke();
+  // eslingas rígidas
+  const e=(st.b-st.a)*0.16,x1=clamp(ss.ax-e,st.a,st.b),x2=clamp(ss.ax+e,st.a,st.b);
+  ctx.lineWidth=4;ctx.beginPath();[x1,x2].forEach(x=>{const[a,b]=tr(ss.ax,g.Pyl),[p,q]=tr(x,st.f(x));ctx.moveTo(a,b);ctx.lineTo(p,q)});ctx.stroke();
+  // ancla
+  const[ax_,ay_]=tr(ss.ax,g.Pyl);ctx.fillStyle='#b97a3d';ctx.lineWidth=4;ctx.beginPath();ctx.arc(ax_,ay_,15,0,7);ctx.fill();ctx.stroke();ctx.fillStyle='#f5c15a';ctx.beginPath();ctx.arc(ax_,ay_,6,0,7);ctx.fill();ctx.lineWidth=3;ctx.stroke();
+  // CG si ya calculado
+  if(ss.calcOK){const[cx,cy]=tr(st.ex.x,st.ex.y);cgDot(cx,cy,true)}
+  // vertical de gancho
+  if(!ss.done&&!S.anim){ctx.setLineDash([5,6]);ctx.strokeStyle='rgba(22,48,90,.45)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(PX,P_Y);ctx.lineTo(PX,P_Y+g.s*(g.Pyl-g.lo)+20);ctx.stroke();ctx.setLineDash([])}
+  const deg=th*180/Math.PI;ss.deg=deg;
+}
+
+/* =====================================================================
+   LÓGICA / INTERACCIÓN
+   ===================================================================== */
+let toastT;function toast(msg,kind=''){const t=$('#toast');t.textContent=msg;t.className='on '+kind;clearTimeout(toastT);toastT=setTimeout(()=>t.className='',2300)}
+let fbT;function setFB(html,kind='',ms){const f=$('#fbs');clearTimeout(fbT);if(!html){f.className='fbs';return}
+  f.className='fbs on '+kind;f.innerHTML='<button class="x" onclick="this.parentNode.className=\'fbs\'" aria-label="Cerrar">×</button>'+html;fbT=setTimeout(()=>f.className='fbs',ms||(kind==='good'?3800:14000))}
+function pos(e){const r=cvs.getBoundingClientRect();return[(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height]}
+cvs.addEventListener('pointermove',e=>{[S.mx,S.my]=pos(e)});
+cvs.addEventListener('pointerdown',e=>{[S.mx,S.my]=pos(e);if(e.pointerType==='mouse'&&stages[S.si].type!=='curve')canvasAction()});
+cvs.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse'){[S.mx,S.my]=pos(e);if(stages[S.si].type!=='curve')canvasAction()}});   // en celular: arrastra y suelta
+function toShip(px,py){const dx=px-X0,dy=py-500,c=Math.cos(-S.ang),s=Math.sin(-S.ang);return[X0+dx*c-dy*s,500+dx*s+dy*c]}
+function canvasAction(){
+  const st=stages[S.si],ss=SS();
+  if(S.anim||MD)return;
+  if(ss.held)return drop();
+  const[x,y]=toShip(S.mx,S.my);
+  if(st.type==='points'){
+    for(const i of ss.items){if(i.fixed)continue;const top=ss.items.filter(j=>j.c===i.c).length-1;
+      if(i.r===top&&x>X0+i.c*U-U/2&&x<X0+i.c*U+U/2&&y>DECK-(i.r+1)*U&&y<DECK-i.r*U){ss.items.splice(ss.items.indexOf(i),1);const q={uid:'q'+Math.random(),m:i.m};ss.queue.push(q);ss.held=q;renderPanel();return}}
+  }else{
+    for(const i of ss.items){const p=st.pieces[i.pid];if(x>X0+i.L*U&&x<X0+(i.L+p.W)*U&&y>DECK-p.H*U&&y<DECK){ss.items.splice(ss.items.indexOf(i),1);ss.ps[i.pid].placed=false;ss.held={pid:i.pid};renderPanel();return}}
+  }
+}
+function drop(){
+  const st=stages[S.si],ss=SS(),g=carryGeom();if(!g)return;
+  if(st.type==='points'){
+    const h=ss.items.filter(i=>i.c===g.c).length;if(h>=3)return toast('Columna llena (máx. 3)','bad');
+    ss.items.push({m:ss.held.m,c:g.c,r:h,uid:ss.held.uid,fall:(DECK-(h+1)*U)-(HOOK_Y+60),vy:0});
+    ss.queue=ss.queue.filter(q=>q.uid!==ss.held.uid);
+  }else{
+    const pid=ss.held.pid,p=st.pieces[pid];if(!canPlace(g.L,p.W,pid))return toast('Se solapa con otra pieza','bad');
+    ss.items.push({pid,L:g.L,flip:ss.ps[pid].flip,fall:(DECK-p.H*U)-(HOOK_Y+62),vy:0});ss.ps[pid].placed=true;
+  }
+  ss.held=null;renderPanel();
+  const done=st.type==='points'?ss.queue.length===0:ss.ps.every(q=>q.placed);
+  if(done)S.anim={k:'check',t:0};   // última pieza colocada: el barco se evalúa solo
+}
+setInterval(()=>{ // física de caída + escora
+  const st=stages[S.si],ss=SS();
+  (ss.items||[]).forEach(i=>{if(i.fall>0){i.vy+=1.1;i.fall=Math.max(0,i.fall-i.vy);if(i.fall===0){SFX.drop();const cx=st.type==='points'?X0+i.c*U:X0+(i.L+st.pieces[i.pid].W/2)*U;burst(cx,DECK-2,10,['#e9d9b0','#fff','#c9b27a'],4,3)}}});
+  let tgt=0;if(st.type!=='curve'){const p=points();if(p.length){const xt=st.type==='points'?st.target.x:st.target;tgt=clamp((cmOf(p).x-xt)*0.035,-.13,.13)}}
+  S.ang+=(tgt-S.ang)*.07;
+  updateRO();
+  tickAnim();
+},16);
+/* ---------- línea de tiempo del barco: evaluar → zarpar / volcar → siguiente barco ---------- */
+function startSail(){S.anim={k:'sail',t:0};SFX.ok();confetti();setTimeout(SFX.whoosh,500)}
+const HAZ=['iceberg','whale','wave','eagle'];
+function startFail(dir,msg){let h;do{h=HAZ[Math.floor(Math.random()*HAZ.length)]}while(h===S.lastH&&HAZ.length>1);S.lastH=h;S.anim={k:'capsize',t:0,dir,h,msg,ev:{}}}
+function once(a,key,cond,fn){if(cond&&!a.ev[key]){a.ev[key]=1;fn()}}
+function tickAnim(){
+  PT.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.l-=p.rect?.006:.014});for(let i=PT.length-1;i>=0;i--)if(PT[i].l<=0)PT.splice(i,1);
+  const a=S.anim;if(!a)return;a.t+=16;
+  if(a.k==='check'&&a.t>=900){S.anim=null;acts.verify()}
+  else if(a.k==='sail'&&a.t>=2400){S.anim=null;S.ang=0;
+    if(S.si<stages.length-1){acts.stage({i:S.si+1});S.anim={k:'arrive',t:0}}
+    else{setFB('🏆 <b>¡Misión cumplida!</b> Todas las cargas llegaron a puerto.','good',12000);renderPanel()}}
+  else if(a.k==='capsize'){
+    const WAT=['#fff','#bfe6fb','#7cc4f0'];
+    a.dt=a.dt||(a.h==='wave'?800:1000);
+    once(a,'ghost',a.t>a.dt,()=>{const p=shipToScreen(150,290);a.gx=p[0];a.gy=p[1];SFX.wrong()});
+    if(a.h==='iceberg'){once(a,'a',a.t>850,()=>{SFX.drop();burst(700,500,18,['#fff','#cfeaf8'],7,6)});once(a,'b',a.t>1100,()=>{SFX.splash();burst(X0+150,505,30,WAT,8,9)})}
+    if(a.h==='wave'){once(a,'a',a.t>20,SFX.whoosh);once(a,'b',a.t>800,()=>{SFX.splash();burst(X0,480,34,WAT,12,10)})}
+    if(a.h==='whale'){once(a,'a',a.t>300,SFX.whoosh);once(a,'b',a.t>1000,()=>{SFX.bad();burst(X0,470,30,WAT,10,10)})}
+    if(a.h==='eagle')once(a,'a',a.t>250,SFX.screech);
+    if(a.h!=='whale')once(a,'c',a.t>1500,SFX.bad);
+    if(a.t>=2800){const msg=a.msg;S.anim=null;S.ang=0;resetStage();S.anim={k:'arrive',t:0};setFB(msg,'bad',4500)}}
+  else if(a.k==='arrive'&&a.t>=1700)S.anim=null;
+}
+function resetStage(){const old=SS(),st=stages[S.si];
+  if(st.type==='shapes'){old.items=[];old.held=null;old.ps.forEach(q=>{q.placed=false;q.flip=false})}else delete S.ss[S.si];
+  renderPanel()}
+addEventListener('keydown',e=>{
+  const st=stages[S.si],ss=SS();if(/INPUT|TEXTAREA/.test(document.activeElement.tagName)&&e.key!=='Escape')return;
+  if(st.type==='curve'||MD)return;
+  if(e.key==='ArrowLeft')S.mx-=U/(st.type==='points'?1:2);
+  if(e.key==='ArrowRight')S.mx+=U/(st.type==='points'?1:2);
+  if(e.key===' '||e.key==='Enter'){e.preventDefault();if(ss.held)drop()}
+  if(e.key==='Escape'&&ss.held){ss.held=null;renderPanel()}
+  if((e.key==='f'||e.key==='F')&&st.type==='shapes'&&ss.held){const q=ss.ps[ss.held.pid];q.flip=!q.flip}
+});
+
+/* ---------- Lectura en vivo ---------- */
+function readoutHTML(st){
+  const pts=points();if(!pts.length)return'<em>Aún no hay carga a bordo.</em>';
+  const c=cmOf(pts),isP=st.type==='points',uy=isP&&st.useY;
+  const mn=isP?'m':'A',un=isP?'t':'m²';
+  let h='';
+  if(S.guide){
+    h+=`<table><tr><th>${mn} (${un})</th><th>x</th>${uy?'<th>y</th>':''}<th>${mn}·x</th>${uy?`<th>${mn}·y</th>`:''}</tr>`+
+      pts.map(p=>`<tr><td>${fmtP(p.m,isP?0:3)}</td><td>${fmtP(p.x,isP?0:2)}</td>${uy?`<td>${fmtP(p.y,1)}</td>`:''}<td>${fmtP(p.m*p.x,isP?1:3)}</td>${uy?`<td>${fmtP(p.m*p.y,2)}</td>`:''}</tr>`).join('')+'</table>';
+  }
+  const Sx=pts.reduce((s,p)=>s+p.m*p.x,0),Sy=pts.reduce((s,p)=>s+p.m*p.y,0);
+  h+=`x̄ = Σ${mn}x / Σ${mn} = ${fmt(Sx,2)} / ${fmt(c.M,isP?0:3)} = <b>${fmt(c.x)} m</b>`;
+  if(uy)h+=`<br>ȳ = Σ${mn}y / Σ${mn} = ${fmt(Sy,2)} / ${fmt(c.M,0)} = <b>${fmt(c.y)} m</b>`;
+  return h;
+}
+function updateRO(){const r=$('#ro');if(r)r.innerHTML=readoutHTML(stages[S.si]);
+  const d=$('#deg');if(d){const ss=SS();d.textContent=fmt(Math.abs(ss.deg||0),1)+'°'}}
+
+/* ---------- Paneles ---------- */
+function renderPanel(){
+  const st=stages[S.si];
+  let h=`<div class="brand">⚓ Operación Grúa · Carga segura</div><div class="chips">`+
+    stages.map((s,i)=>`<button class="chip ${i===S.si?'on':''} ${S.done[i]?'ok':''}" data-act="stage" data-i="${i}">${S.done[i]?'✓ ':''}${s.tag}</button>`).join('')+`<button class="chip" data-act="demo">📖 Demo</button><button class="chip" data-act="mute" title="Sonido">${S.mute?'🔇':'🔊'}</button></div>`;
+  h+=`<h2>${st.title}</h2><p class="brief">${st.brief}</p>`;
+  h+=st.type==='points'?pointsPanel(st):st.type==='shapes'?shapesPanel(st):curvePanel(st);
+  panel.innerHTML=h;updateRO();
+}
+const goalText=st=>st.useY?`x̄* = ${fmt(st.target.x)} m · ȳ* = ${fmt(st.target.y)} m`:`x̄* = ${fmt(st.target.x)} m`;
+function pointsPanel(st){const ss=SS();
+  return`<div class="lbl">Contenedores por izar (clic para tomar)</div><div class="queue">${ss.queue.map(q=>`<button class="qbox c${q.m%4==0?0:q.m%4}" style="background:${COLS[q.m%4][0]}" data-act="pick" data-id="${q.uid}">${q.m} t</button>`).join('')||'<em>Todos a bordo ✔</em>'}</div>
+  <div class="goal">🎯 Objetivo: ${goalText(st)}</div>
+  <div class="lbl">Cálculo en vivo <label><input type="checkbox" data-act="guide" ${S.guide?'checked':''}> mostrar tabla</label></div><div id="ro" class="ro"></div>
+  <div class="btns"><button class="btn ghost" data-act="reset">↺ Reiniciar</button></div>`}
+
+function pieceSVG(p,scale,flip,numbered){
+  const w=p.W*scale,h=p.H*scale,col=COLS[p.ci];
+  let dots='';if(numbered)p.parts.forEach((q,i)=>{const x=(flip?p.W-q.c[0]:q.c[0])*scale,y=(p.H-q.c[1])*scale;dots+=`<circle cx="${x}" cy="${y}" r="8" fill="${q.sign<0?'#e5472e':'#16305a'}" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y+4}" font-size="11" font-weight="700" text-anchor="middle" fill="#fff">${i+1}</text>`});
+  const m=numbered?20:6;
+  return`<svg viewBox="${-m} ${-m} ${w+2*m} ${h+2*m}" preserveAspectRatio="xMidYMid meet"><path d="${pathD(p,flip)}" transform="scale(${scale})" fill="${col[0]}" stroke="${OUT}" stroke-width="${3/scale}" stroke-linejoin="round" fill-rule="evenodd"/>${dots}${numbered?`<text x="-14" y="${h+16}" font-size="11" fill="${OUT}" font-weight="600">O</text>`:''}</svg>`;
+}
+function shapesPanel(st){const ss=SS();
+  let h='<div class="lbl">Piezas del cargamento</div>';
+  st.pieces.forEach((p,i)=>{const q=ss.ps[i];
+    h+=`<div class="pcard ${ss.held&&ss.held.pid===i?'sel':''}" ${q.solved?(q.placed?'':`data-act="pick" data-id="${i}"`):`data-act="calc" data-i="${i}"`} style="cursor:${q.placed?'default':'pointer'}">${pieceSVG(p,16,q.flip,false)}<div class="info"><b>${p.name}</b><br>`+
+     (q.solved?`A = ${fmt(p.A,3)} m² · C = (${fmt(p.cx)}; ${fmt(p.cy)}) ✔`:'🔒 calcula su centroide para izarla')+`<br>`+
+     (q.solved?(q.placed?'<span class="mini g" style="cursor:default">en cubierta</span>':`<button class="mini o" data-act="pick" data-id="${i}">Izar</button>`):`<button class="mini" data-act="calc" data-i="${i}">🧮 Calcular</button>`)+
+     (q.solved&&!q.placed?` <button class="mini g" data-act="flip" data-i="${i}">↔ Voltear</button>`:'')+`</div></div>`;
+    if(ss.calc===i&&!q.solved){
+      h+=`<div class="calc"><b>Centroide de «${p.name}»</b> (origen O en la esquina inferior izquierda)${pieceSVG(p,40,false,true)}
+       <table><tr><th>#</th><th>Parte</th><th>A (m²)</th><th>x̄ᵢ</th><th>ȳᵢ</th></tr>${p.parts.map((q,k)=>`<tr><td>${k+1}</td><td>${q.name}</td><td>${q.sign<0?'−':''}${fmt(q.A,3)}</td><td>${fmt(q.c[0],3)}</td><td>${fmt(q.c[1],3)}</td></tr>`).join('')}</table>
+       <div class="row2">x̄ = <input type="text" id="ix" inputmode="decimal"> ȳ = <input type="text" id="iy" inputmode="decimal"> m</div>
+       <div class="btns"><button class="btn blue" data-act="check2" data-i="${i}">Comprobar</button><button class="btn ghost" data-act="hint2" data-i="${i}">💡 Pista</button></div></div>`}
+  });
+  const solvedAll=ss.ps.every(q=>q.solved);
+  h+=`<div class="goal">🎯 Objetivo: x̄* = ${fmt(st.target)} m (centro de gravedad del conjunto)</div>
+  <div class="lbl">Cálculo en vivo <label><input type="checkbox" data-act="guide" ${S.guide?'checked':''}> mostrar tabla</label></div><div id="ro" class="ro"></div>
+  <div class="btns"><button class="btn ghost" data-act="reset">↺ Reiniciar</button></div>`;
+  return h;
+}
+function mcqOptions(st){
+  const h=st.G==='0'?st.F:`(${st.F}) − (${st.G})`,lim=`∫[${st.a} → ${st.b}]`;
+  const f2=st.G==='0'?`(${st.F})²`:`[(${st.F})² − (${st.G})²]`;
+  return[ {t:`${lim}  x · ${st.G==='0'?`(${st.F})`:`[${h}]`} dx`,ok:true,why:''},
+          {t:`${lim}  ${st.G==='0'?`(${st.F})`:`[${h}]`} dx`,ok:false,why:'Eso suma las franjas sin ponderar por su posición: es el <b>área A</b>.'},
+          {t:`${lim}  ½ · ${f2} dx`,ok:false,why:'Eso pesa por la altura media de cada franja: es el momento respecto al eje x, <b>M<sub>x</sub></b>.'},
+          {t:`${lim}  x² · ${st.G==='0'?`(${st.F})`:`[${h}]`} dx`,ok:false,why:'El brazo de palanca de la franja es x, no x². Cada franja pesa (f − g)·dx y se multiplica por x.'}];
+}
+function curvePanel(st){const ss=SS(),opts=mcqOptions(st);
+  const mcq=ss.shuffle.map(i=>{const o=opts[i];const cls=ss.mcq===i?(o.ok?'ok':'no'):'';return`<button class="opt ${cls}" data-act="mcq" data-i="${i}">${o.t}</button>`}).join('');
+  const inp=(id,l)=>`<label>${l} = <input type="text" id="${id}" inputmode="decimal"></label>`;
+  return`<div class="eq">${st.label}</div>
+  <div class="lbl"><span>1 · ¿Qué integral da el momento M<sub>y</sub>?</span></div>${mcq}
+  <div class="${ss.mcq!==null&&opts[ss.mcq].ok?'':'locked'}">
+   <div class="lbl">2 · Calcula (fracción o decimal)</div>
+   <div class="row2">${inp('iA','A')} ${inp('iMy','M<sub>y</sub>')} ${inp('iMx','M<sub>x</sub>')}</div>
+   <div class="row2" style="margin-top:6px">${inp('ix','x̄ = M<sub>y</sub>/A')} ${inp('iy','ȳ = M<sub>x</sub>/A')}</div>
+   <div class="btns"><button class="btn blue" data-act="check3">Comprobar</button><button class="btn ghost" data-act="hint3">💡 Pista</button></div></div>
+  <div class="${ss.calcOK?'':'locked'}">
+   <div class="lbl">3 · Coloca la argolla <span class="mono">x = <b id="axv">${fmt(ss.ax,2)}</b> · inclinación <b id="deg">0°</b></span></div>
+   <input type="range" id="ax" min="${st.a}" max="${st.b}" step="0.01" value="${ss.ax}">
+</div>`;
+}
+
+/* ---------- Acciones ---------- */
+const acts={
+  stage(d){S.si=+d.i;S.hookX=X0;renderPanel()},
+  guide(){S.guide=!S.guide;updateRO()},
+  pick(d){const st=stages[S.si],ss=SS();
+    if(st.type==='points'){const q=ss.queue.find(q=>q.uid===d.id);ss.held=ss.held&&ss.held.uid===d.id?null:q}
+    else ss.held=ss.held&&ss.held.pid===+d.id?null:{pid:+d.id};
+    renderPanel()},
+  flip(d){const ss=SS();ss.ps[+d.i].flip=!ss.ps[+d.i].flip;renderPanel()},
+  reset(){delete S.ss[S.si];delete S.done[S.si];renderPanel()},
+  next(){if(S.si<stages.length-1){acts.stage({i:S.si+1})}else setFB('🏆 <b>¡Misión cumplida!</b> Completaste todas las etapas del prototipo.','good')},
+  verify(){
+    const st=stages[S.si],ss=SS(),pts=points();
+    if(st.type==='points'&&ss.queue.length)return setFB('Sube <b>todos</b> los contenedores antes de zarpar.','info');
+    if(st.type==='shapes'&&ss.ps.some(q=>!q.placed))return setFB('Coloca <b>las tres piezas</b> en cubierta antes de zarpar.','info');
+    const c=cmOf(pts),tol=0.06,isP=st.type==='points',xt=isP?st.target.x:st.target;
+    const dx=c.x-xt,dy=isP&&st.useY?c.y-st.target.y:0,ok=Math.abs(dx)<=tol&&Math.abs(dy)<=tol;
+    if(ok){S.done[S.si]=true;renderPanel();
+      setFB(`✅ <b>¡Carga segura!</b> x̄ = ${fmt(c.x)} m${isP&&st.useY?`, ȳ = ${fmt(c.y)} m`:''}`,'good',2600);startSail();return}
+    const msg=`💥 Centro de masa en x̄ = <b>${fmt(c.x)} m</b>${isP&&st.useY?`, ȳ = <b>${fmt(c.y)} m</b>`:''} · objetivo ${isP&&st.useY?`(${fmt(xt)}; ${fmt(st.target.y)})`:fmt(xt)} m`;
+    setFB('');startFail(dx>=0?1:-1,msg);
+  },
+  calc(d){SS().calc=+d.i;renderPanel()},
+  check2(d){const st=stages[S.si],ss=SS(),p=st.pieces[+d.i],ix=$('#ix'),iy=$('#iy'),vx=num(ix.value),vy=num(iy.value);
+    const okx=Math.abs(vx-p.cx)<=0.03,oky=Math.abs(vy-p.cy)<=0.03;ix.className=okx?'ok':'no';iy.className=oky?'ok':'no';
+    if(okx&&oky){ss.ps[+d.i].solved=true;ss.calc=null;ss.held={pid:+d.i};SFX.ding();renderPanel();setFB(`✅ «${p.name}»: (${fmt(p.cx)}; ${fmt(p.cy)}) m`,'good',2200)}
+    else{SFX.wrong();setFB(`x̄ ${okx?'✓':'✗'} · ȳ ${oky?'✓':'✗'}`,'bad',2500)}},
+  hint2(d){const p=stages[S.si].pieces[+d.i];const t=k=>p.parts.map(q=>`${q.sign<0?'−':'+'} ${fmt(q.A,3)}·${fmt(q.c[k],3)}`).join(' ').replace(/^\+ /,'');
+    const Aexp=p.parts.map(q=>`${q.sign<0?'−':'+'} ${fmt(q.A,3)}`).join(' ').replace(/^\+ /,'');
+    setFB(`<b>Pista</b><br>A = ${Aexp} = ${fmt(p.A,3)}<br>x̄ = (${t(0)}) / ${fmt(p.A,3)}<br>ȳ = (${t(1)}) / ${fmt(p.A,3)}<br>Resultado: (${fmt(p.cx)}; ${fmt(p.cy)})`,'info')},
+  mcq(d){const st=stages[S.si],ss=SS(),o=mcqOptions(st)[+d.i];ss.mcq=+d.i;renderPanel();
+    o.ok?SFX.ding():SFX.wrong();setFB(o.ok?'✅ Correcto':'❌ '+o.why,o.ok?'good':'bad',o.ok?2000:5000)},
+  check3(d){const st=stages[S.si],ss=SS(),v=st.ex,ids=['iA','iMy','iMx','ix','iy'],keys=['A','My','Mx','x','y'];
+    let all=true;ids.forEach((id,i)=>{const el=$('#'+id),ok=close(num(el.value),v[keys[i]]);el.className=ok?'ok':'no';all=all&&ok});
+    if(all){ss.calcOK=true;const keep=ids.map(id=>$('#'+id).value);renderPanel();ids.forEach((id,i)=>{const el=$('#'+id);el.value=keep[i];el.className='ok'});
+      SFX.ding();setFB(`✅ Centroide (${fmt(v.x)}; ${fmt(v.y)}) m`,'good',2200)}
+    else{SFX.wrong();setFB('Hay valores que no coinciden','bad',2500)}},
+  hint3(){const st=stages[S.si],e=st.exs;
+    setFB(`<b>Pista</b> (resultados exactos)<br>A = ∫(f − g)dx = ${e.A}<br>M<sub>y</sub> = ∫x(f − g)dx = ${e.My}<br>M<sub>x</sub> = ∫½(f² − g²)dx = ${e.Mx}<br>x̄ = M<sub>y</sub>/A = ${e.x} · ȳ = M<sub>x</sub>/A = ${e.y}`,'info')},
+  lift(){const st=stages[S.si],ss=SS(),err=Math.abs(ss.ax-st.ex.x),tol=0.03*(st.b-st.a);
+    if(ss.done||S.anim||!ss.calcOK)return;
+    if(err<=tol){const idx=S.si;ss.ax=st.ex.x;ss.done=true;S.done[S.si]=true;renderPanel();SFX.ding();setFB('✅ ¡Cuelga nivelada!','good',2400);
+      setTimeout(()=>{if(S.si===idx&&!S.anim)startSail()},2800)}}
+};
+panel.addEventListener('click',e=>{if(S.anim)return;const b=e.target.closest('[data-act]');if(!b||b.tagName==='LABEL')return;if(b.type==='checkbox'){acts.guide();return}acts[b.dataset.act]?.(b.dataset)});
+panel.addEventListener('change',e=>{if(e.target.id==='ax')acts.lift()});
+panel.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.target.tagName!=='INPUT'||e.target.type==='checkbox'||e.target.type==='range')return;
+  const t=stages[S.si].type;if(t==='curve')acts.check3();else if(t==='shapes'&&SS().calc!=null)acts.check2({i:SS().calc})});
+panel.addEventListener('input',e=>{if(e.target.id==='ax'){const ss=SS();ss.ax=+e.target.value;$('#axv').textContent=fmt(ss.ax,2)}});
+
+/* =====================================================================
+   DEMOS GUIADAS Y EJEMPLOS RESUELTOS (con datos distintos a los del juego)
+   ===================================================================== */
+const modal=$('#modal');let MD=null;
+function showModal(title,steps){MD={title,steps,i:0};drawModal();modal.classList.add('on')}
+function drawModal(){
+  const{title,steps,i}=MD,s=steps[i],last=i===steps.length-1;
+  modal.innerHTML=`<div class="mcard"><div class="mhead"><b>${title}</b>${steps.length>1?`<span>Paso ${i+1} de ${steps.length}</span>`:''}</div>
+   <h3>${s.t}</h3>${s.html}
+   <div class="btns">${i>0?'<button class="btn ghost" data-m="prev">◀ Anterior</button>':''}${!last?'<button class="btn blue" data-m="next">Siguiente ▶</button>':''}<button class="btn ${last?'green':'ghost'}" data-m="close">${last?'¡Entendido, a jugar!':'Saltar demo'}</button></div></div>`;
+}
+modal.addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;const a=b.dataset.m;
+  if(a==='next')MD.i++;if(a==='prev')MD.i--;if(a==='close'){modal.classList.remove('on');MD=null;return}drawModal()});
+const sg=q=>q.sign<0?'−':'+';
+function lineSVG(items,o={}){
+  const ox=260,u=52;let s='<svg viewBox="0 0 520 170" class="dsvg"><rect x="20" y="104" width="480" height="14" rx="6" fill="#1d4f91" stroke="#16305a" stroke-width="3"/>';
+  for(let i=-4;i<=4;i++)s+=`<text x="${ox+i*u}" y="138" font-size="12" text-anchor="middle" fill="#16305a">${i}</text>`;
+  const box=(it,ghost)=>{const x=ox+it.x*u;return`<g ${ghost?'opacity=".5" stroke-dasharray="4 3"':''}><rect x="${x-18}" y="66" width="36" height="36" rx="4" fill="${COLS[it.m%4][0]}" stroke="#16305a" stroke-width="3"/><text x="${x}" y="89" font-size="14" font-weight="700" text-anchor="middle" fill="#fff">${it.m}t</text></g>`+(o.mx&&!ghost?`<text x="${x}" y="58" font-size="12" font-weight="700" text-anchor="middle" fill="#c25a00">${it.m}·(${it.x}) = ${it.m*it.x}</text>`:'')};
+  items.forEach(it=>s+=box(it,false));if(o.ghost)s+=box(o.ghost,true);
+  if(o.fulcrum!=null){const c=ox+o.fulcrum*u;s+=`<polygon points="${c},120 ${c-13},150 ${c+13},150" fill="#f5b84a" stroke="#16305a" stroke-width="3"/><text x="${c}" y="166" font-size="12" font-weight="700" text-anchor="middle" fill="#16305a">x̄ = ${fmt(o.fulcrum)}</text>`}
+  if(o.flag!=null){const c=ox+o.flag*u;s+=`<line x1="${c}" y1="20" x2="${c}" y2="104" stroke="#27a574" stroke-width="3" stroke-dasharray="5 4"/><polygon points="${c},20 ${c+34},28 ${c},36" fill="#27a574" stroke="#16305a" stroke-width="2"/><text x="${c+4}" y="32" font-size="9" font-weight="700" fill="#fff">x̄*=${o.flag}</text>`}
+  return s+'</svg>';
+}
+function demoPoints(){
+  const it=[{m:2,x:-2},{m:3,x:1},{m:1,x:3}];
+  const tb=(n)=>`<table class="dt"><tr><th>m (t)</th><th>x (m)</th>${n>=2?'<th>m·x</th>':''}</tr>${it.map(p=>`<tr><td>${p.m}</td><td>${p.x}</td>${n>=2?`<td>${p.m*p.x}</td>`:''}</tr>`).join('')}${n>=3?'<tr><th>Σ = 6</th><th></th><th>2</th></tr>':''}</table>`;
+  return[
+   {t:'Mira cada carga: masa y posición',html:lineSVG(it)+tb(1)+'<p>Cada contenedor tiene una <b>masa m</b> (toneladas) y una <b>posición x</b>: su distancia al centro del barco. A la izquierda es negativa.</p>'},
+   {t:'Multiplica masa × distancia',html:lineSVG(it,{mx:true})+tb(2)+'<p>Ese producto <b>m·x</b> es el «momento»: cuánto empuja esa carga hacia su lado. Los negativos jalan a la izquierda.</p>'},
+   {t:'Suma los momentos y suma las masas',html:tb(3)+'<p><b>Σ m·x</b> = −4 + 3 + 3 = <b>2</b><br><b>Σ m</b> = 2 + 3 + 1 = <b>6</b></p>'},
+   {t:'Divide: ahí está el centro de masa',html:lineSVG(it,{fulcrum:1/3})+'<p><b>x̄ = Σmx / Σm = 2 / 6 ≈ 0,33 m</b>. Si apoyaras el barco en ese punto, quedaría en equilibrio.</p>'},
+   {t:'Para llegar al objetivo: ¿dónde coloco la carga?',html:lineSVG(it,{flag:1,ghost:{m:4,x:2}})+'<p>Meta: <b>x̄* = 1</b>. Tienes una carga extra de <b>4 t</b>.<br>1) Con todo a bordo: Σm = 6 + 4 = 10.<br>2) Momento total necesario: x̄*·Σm = 1·10 = <b>10</b>.<br>3) Ya hay 2, así que a la carga nueva le faltan <b>8</b>.<br>4) m·x = 8 → 4·x = 8 → <b>x = 2</b>: ¡a la columna 2!</p><p>En el juego repite esto con tus datos. Apilar contenedores cambia la altura y (0,5 · 1,5 · 2,5) y se calcula igual: ȳ = Σmy / Σm.</p>'}
+  ];
+}
+function workedHTML(p){
+  const t=k=>p.parts.map(q=>`${sg(q)} ${fmt(q.A,3)}·${fmt(q.c[k],3)}`).join(' ').replace(/^\+ /,'');
+  return`<div style="max-width:300px;margin:auto">${pieceSVG(p,40,false,true)}</div><table class="dt"><tr><th>#</th><th>Parte</th><th>A</th><th>x̄ᵢ</th><th>ȳᵢ</th></tr>${p.parts.map((q,k)=>`<tr><td>${k+1}</td><td>${q.name}</td><td>${q.sign<0?'−':''}${fmt(q.A,3)}</td><td>${fmt(q.c[0],3)}</td><td>${fmt(q.c[1],3)}</td></tr>`).join('')}</table>
+  <p>A = ${p.parts.map(q=>`${sg(q)} ${fmt(q.A,3)}`).join(' ').replace(/^\+ /,'')} = <b>${fmt(p.A,3)}</b><br>
+  x̄ = (${t(0)}) / ${fmt(p.A,3)} = <b>${fmt(p.cx,3)}</b><br>ȳ = (${t(1)}) / ${fmt(p.A,3)} = <b>${fmt(p.cy,3)}</b></p>`;
+}
+const exStep=()=>mkPiece('Placa en escalón',0,[R(0,0,4,1,1,'Base 4×1'),R(0,1,2,1,1,'Escalón 2×1')]);
+const exHole=()=>mkPiece('Placa con orificio (ejemplo)',2,[R(0,0,3,2,1,'Placa 3×2'),Circ(2,1,0.5,-1,'Agujero r = 0,5')]);
+const exTri=()=>mkPiece('Placa con cuña',1,[R(0,0,3,1,1,'Base 3×1'),Tri([0,1],[3,1],[0,2],'Triángulo b=3, h=1')]);
+const exSemi=()=>mkPiece('Placa con cúpula',3,[R(0,0,2,1,1,'Base 2×1'),Semi(1,1,1,'Semicírculo r = 1')]);
+function exampleFor(p){return p.parts.some(q=>q.sign<0)?exHole():p.parts.some(q=>q.poly.length===41)?exSemi():p.parts.some(q=>q.poly.length===3)?exTri():exStep()}
+function demoShapes(){return[
+  {t:'1 · Descompón en figuras simples',html:`<div style="max-width:300px;margin:auto">${pieceSVG(exStep(),40,false,true)}</div><p>Ejemplo (no es una pieza del juego): una placa en escalón se corta en <b>dos rectángulos</b>. Los puntos numerados marcan el centroide de cada parte (el centro de un rectángulo).</p>`},
+  {t:'2 · Tabla: área y centroide de cada parte',html:workedHTML(exStep())+'<p>x̄ = <b>Σ(Aᵢ·x̄ᵢ) / ΣAᵢ</b> y lo mismo con y. Es el mismo promedio ponderado del Nivel 1, pero con áreas en lugar de masas.</p>'},
+  {t:'3 · Los agujeros restan',html:workedHTML(exHole())+'<p>El agujero se trata como una parte de <b>área negativa</b>: baja el área total y empuja el centroide al lado contrario.</p>'},
+  {t:'4 · Ya tienes el centroide: ahora colócala',html:'<p>Cada pieza se comporta como una masa puntual en su centroide, con masa = área (densidad 1 t/m²).<br>Posición global: <b>x = L + x̄ᵢ</b>, donde L es el borde izquierdo donde la sueltas.<br>Si la volteas, x̄ᵢ pasa a ser <b>ancho − x̄ᵢ</b>.<br>Luego el centro de gravedad del conjunto es <b>Σ(Aᵢ·x) / ΣAᵢ</b>: igual que en el Nivel 1.</p><p>Calcula cada centroide (puedes pedir una pista: te mostrará un ejemplo parecido, no la respuesta) y busca el orden y los huecos que dejen x̄ en la bandera.</p>'}
+]}
+function curveSVG(){
+  const sx=60,sy=34,X=20,Y=170,pt=x=>`${X+x*sx},${Y-x*x*sy}`;let pts=[];for(let i=0;i<=40;i++)pts.push(pt(2*i/40));
+  return`<svg viewBox="0 0 220 190" class="dsvg" style="max-width:260px"><polygon points="${X},${Y} ${pts.join(' ')} ${X+2*sx},${Y}" fill="#f7922b" stroke="#16305a" stroke-width="3"/>
+  <rect x="${X+0.9*sx}" y="${Y-1*sy}" width="6" height="${sy}" fill="#16305a" opacity=".55"/><text x="${X+sx+12}" y="${Y-8}" font-size="11" fill="#16305a" font-weight="700">franja dx</text>
+  <circle cx="${X+1.5*sx}" cy="${Y-1.2*sy}" r="6" fill="#fff" stroke="#16305a" stroke-width="3"/><text x="${X+2*sx+4}" y="${Y-5}" font-size="11" fill="#16305a">x</text><text x="${X-2}" y="22" font-size="11" fill="#16305a">y = x²</text></svg>`;
+}
+const curveWorked=()=>`<p><i>Ejemplo con otra curva: región bajo <b>y = x²</b> entre x = 0 y x = 2.</i></p>
+  <table class="dt"><tr><td>Área</td><td>A = ∫₀² x² dx = 8/3</td></tr><tr><td>Momento M<sub>y</sub> (brazo x)</td><td>∫₀² x·x² dx = ∫ x³ dx = 4</td></tr><tr><td>Momento M<sub>x</sub> (franja a media altura)</td><td>∫₀² ½(x²)² dx = ½∫ x⁴ dx = 16/5</td></tr><tr><td>x̄ = M<sub>y</sub>/A</td><td>4 / (8/3) = 3/2</td></tr><tr><td>ȳ = M<sub>x</sub>/A</td><td>(16/5) / (8/3) = 6/5</td></tr></table>`;
+function demoCurve(){return[
+  {t:'1 · Corta la placa en franjas',html:curveSVG()+'<p>Cada franja de ancho dx pesa <b>(f − g)·dx</b> (su altura por dx), está a distancia <b>x</b> del eje y y su centro queda a <b>media altura</b> ½(f + g). Es el Nivel 1 con infinitas masas muy pequeñas.</p>'},
+  {t:'2 · Suma con integrales',html:curveWorked()+'<p>Mismas ideas: área = Σ masas, momento = Σ (masa × brazo).</p>'},
+  {t:'3 · Ubica la argolla sobre x̄',html:'<p>El gancho debe quedar <b>justo encima del centro de gravedad</b>. Si la argolla está a un lado, el peso crea un momento y la placa gira hasta que x̄ queda bajo el gancho: la verás inclinada.</p><p>En el juego: elige la integral correcta de M<sub>y</sub>, calcula A, M<sub>y</sub>, M<sub>x</sub>, x̄ y ȳ de <b>tu</b> región, y mueve la argolla a x = x̄. Con 💡 Pista verás este mismo tipo de ejemplo.</p>'}
+]}
+function openDemo(type){showModal('📖 Demo guiada',type==='points'?demoPoints():type==='shapes'?demoShapes():demoCurve())}
+function maybeDemo(){const t=stages[S.si].type;S.seen=S.seen||{};if(!S.seen[t]){S.seen[t]=1;openDemo(t)}}
+acts.demo=()=>openDemo(stages[S.si].type);
+acts.hint2=d=>{const p=stages[S.si].pieces[+d.i],ex=exampleFor(p);
+  showModal('💡 Pista: ejemplo resuelto',[{t:`Así se hace con «${ex.name}» (otra figura)`,html:workedHTML(ex)+'<p><b>Ahora tú:</b> haz lo mismo con tu pieza: llena la tabla de partes, suma A·x̄ᵢ y A·ȳᵢ, y divide entre el área total.'+(p.parts.some(q=>q.sign<0)?' No olvides que el agujero resta.':'')+'</p>'}])};
+acts.hint3=()=>showModal('💡 Pista: ejemplo resuelto',[{t:'Así se hace con otra región',html:curveSVG()+curveWorked()+'<p><b>Ahora tú:</b> sigue los mismos pasos con tu región (recuerda f − g y los límites de integración).</p>'}]);
+const _stage=acts.stage;acts.stage=d=>{if(MD){modal.classList.remove('on');MD=null}_stage(d);S.ang=0;setFB('')};   // la demo se abre solo a pedido y siempre es la del nivel actual
+acts.mute=()=>{S.mute=!S.mute;renderPanel()};
+const _pick=acts.pick;acts.pick=d=>{if(S.anim)return;SFX.pick();_pick(d)};
+
+window.G={S,stages,cmOf,points,simp,SS,acts};
+(function loop(ts){T=ts/1000;draw();drawParticles();requestAnimationFrame(loop)})(0);
+renderPanel();
+</script>
+</body>
+</html>
