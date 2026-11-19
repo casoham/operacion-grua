@@ -140,6 +140,13 @@ input[type=text]{background:#2a1e15;color:var(--c-text);border:1.6px solid var(-
 .dock{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:4px;background:var(--c-hud);border:1.6px solid var(--c-line);box-shadow:0 4px 0 var(--c-line);border-radius:24px;padding:6px 10px;z-index:3}
 .dock button{font:inherit;background:none;border:0;color:var(--c-text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 10px;font-weight:700;font-size:12px;border-radius:14px}
 .dock button i{font-style:normal;font-size:24px;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}.dock button:hover i{transform:translateY(-3px) scale(1.12)}.dock button:active i{transform:scale(.9)}
+.dock button i svg,.pill .ico svg,.bi{width:1em;height:1em;display:block}.dock button i{display:block;width:26px;height:26px}.dock button i svg{width:100%;height:100%}
+.pill .ico{width:24px;height:24px;display:block}.pill .ico svg{width:100%;height:100%}.bi{display:inline-block;vertical-align:-3px;width:18px;height:18px}
+.chip{position:relative}.chip.new::after{content:"!";position:absolute;right:-5px;top:-7px;min-width:17px;height:17px;border-radius:50%;background:#ff3b30;color:#fff;font-size:11px;line-height:15px;text-align:center;border:1.6px solid var(--c-line);animation:ft-pulse 1.6s ease-in-out infinite}
+@keyframes ft-pulse{50%{transform:scale(1.18)}}
+.lvs{display:flex;gap:8px;margin:2px 0 10px}.lv{flex:1;font-size:11px;font-weight:700;color:var(--c-mute)}
+.bar{height:9px;margin-top:3px;background:#2a1e15;border:1.6px solid var(--c-line);border-radius:999px;overflow:hidden}
+.bar div{height:100%;background:linear-gradient(#a8d58a,#6b9e4a);border-radius:999px;transition:width .8s cubic-bezier(.22,1,.36,1)}
 @media(max-width:520px){.pill{font-size:12px;padding:4px 10px 4px 8px}.pill .ico{font-size:18px}.dock button{padding:2px 6px;font-size:11px}.dock button i{font-size:20px}.fbs{top:54px}}
 </style>
 </head>
@@ -149,7 +156,10 @@ input[type=text]{background:#2a1e15;color:var(--c-text);border:1.6px solid var(-
     <canvas id="c" width="800" height="600" aria-label="Escena del puerto con barco y grúa"></canvas>
     <div id="toast"></div>
     <div class="hud"><div class="pill" id="hudL"></div><div class="pill" id="hudR"></div></div>
-    <nav class="dock" id="dock"><button data-act="demo"><i>📖</i>Demo</button><button data-act="mute"><i id="muteI">🔊</i>Sonido</button><button data-act="reset"><i>🔄</i>Reiniciar</button></nav>
+    <nav class="dock" id="dock">
+      <button data-act="demo"><i><svg viewBox="0 0 32 32"><path d="M4 7c4-2 8-2 12 1v18c-4-3-8-3-12-1z" fill="#78adfd" stroke="#140c07" stroke-width="2" stroke-linejoin="round"/><path d="M28 7c-4-2-8-2-12 1v18c4-3 8-3 12-1z" fill="#fbefd9" stroke="#140c07" stroke-width="2" stroke-linejoin="round"/><path d="M19 12h6M19 16h6" stroke="#b85c38" stroke-width="2" stroke-linecap="round"/></svg></i>Demo</button>
+      <button data-act="mute"><i id="muteI"></i>Sonido</button>
+      <button data-act="reset"><i><svg viewBox="0 0 32 32"><path d="M26 16a10 10 0 1 1-4-8" fill="none" stroke="#140c07" stroke-width="7" stroke-linecap="round"/><path d="M26 16a10 10 0 1 1-4-8" fill="none" stroke="#90be6d" stroke-width="3.5" stroke-linecap="round"/><path d="M17 3l7 5-7 5z" fill="#90be6d" stroke="#140c07" stroke-width="2" stroke-linejoin="round"/></svg></i>Reiniciar</button></nav>
     <div id="fbs" class="fbs"></div>
     <div id="modal" class="modal"></div>
     <p class="hint">Mueve el mouse para llevar el gancho · clic para soltar · clic en un contenedor para retirarlo · teclado: ← → mover, Espacio soltar, F voltear, Esc cancelar.</p>
@@ -397,7 +407,7 @@ function drawHazardFront(){const a=S.anim;if(!a||a.k!=='capsize')return;drawGhos
 /* ---- partículas y sonido ---- */
 const PT=[];
 function burst(x,y,n,cols,spd,up){for(let i=0;i<n;i++)PT.push({x,y,vx:(Math.random()-.5)*spd,vy:-Math.random()*up-1,l:1,col:cols[i%cols.length],r:2+Math.random()*3,g:.3})}
-function confetti(){const cs=['#f7922b','#e5472e','#2f9be8','#27a574','#ffd23f','#fff'];for(let i=0;i<90;i++)PT.push({x:Math.random()*W,y:-20-Math.random()*80,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,l:2,col:cs[i%6],r:5,g:.04,rect:true})}
+function confetti(){const cs=['#f9d79d','#ffb347','#90be6d','#78adfd','#fbefd9','#e3b873'];for(let i=0;i<90;i++)PT.push({x:Math.random()*W,y:-20-Math.random()*80,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,l:2,col:cs[i%6],r:5,g:.04,rect:true})}
 function drawParticles(){PT.forEach(p=>{ctx.globalAlpha=Math.min(1,p.l);ctx.fillStyle=p.col;if(p.rect)ctx.fillRect(p.x,p.y,p.r*1.6,p.r);else{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()}});ctx.globalAlpha=1}
 let AC=null;const ac=()=>{if(!AC)try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}return AC};
 function tone(f,d,type='sine',v=.14,t0=0,f2){const c=ac();if(!c||S.mute)return;const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+t0;o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d)}
@@ -577,15 +587,24 @@ function updateRO(){const r=$('#ro');if(r)r.innerHTML=readoutHTML(stages[S.si]);
   const d=$('#deg');if(d){const ss=SS();d.textContent=fmt(Math.abs(ss.deg||0),1)+'°'}}
 
 /* ---------- Paneles ---------- */
+const IC={
+ anchor:'<svg viewBox="0 0 32 32"><circle cx="16" cy="7" r="3.5" fill="none" stroke="#140c07" stroke-width="5"/><path d="M16 10v17M8 16h16M6 20c1 5 5 8 10 8s9-3 10-8" fill="none" stroke="#140c07" stroke-width="6" stroke-linecap="round"/><circle cx="16" cy="7" r="3.5" fill="none" stroke="#78adfd" stroke-width="2.4"/><path d="M16 10v17M8 16h16M6 20c1 5 5 8 10 8s9-3 10-8" fill="none" stroke="#78adfd" stroke-width="2.6" stroke-linecap="round"/></svg>',
+ star:'<svg viewBox="0 0 32 32"><path d="M16 3l3.9 8 8.8 1.2-6.4 6.1 1.6 8.7L16 22.7l-7.9 4.3 1.6-8.7-6.4-6.1 8.8-1.2z" fill="#ffd23f" stroke="#140c07" stroke-width="2.4" stroke-linejoin="round"/></svg>',
+ sound:'<svg viewBox="0 0 32 32"><path d="M5 12h5l7-6v20l-7-6H5z" fill="#f9d79d" stroke="#140c07" stroke-width="2" stroke-linejoin="round"/><path d="M21 11c3 3 3 7 0 10M24 8c5 5 5 11 0 16" fill="none" stroke="#fbefd9" stroke-width="2.2" stroke-linecap="round"/></svg>',
+ mute:'<svg viewBox="0 0 32 32"><path d="M5 12h5l7-6v20l-7-6H5z" fill="#a89b8b" stroke="#140c07" stroke-width="2" stroke-linejoin="round"/><path d="M21 12l7 8M28 12l-7 8" stroke="#e5472e" stroke-width="2.6" stroke-linecap="round"/></svg>'};
+S.visited={};
+const LEVELS=[['points','Nivel 1'],['shapes','Nivel 2'],['curve','Nivel 3']];
 function renderPanel(){
-  const st=stages[S.si];
-  let h=`<div class="brand">⚓ Operación Grúa · Carga segura</div><div class="chips">`+
-    stages.map((s,i)=>`<button class="chip ${i===S.si?'on':''} ${S.done[i]?'ok':''}" data-act="stage" data-i="${i}">${S.done[i]?'✓ ':''}${s.tag}</button>`).join('')+`</div>`;
+  const st=stages[S.si];S.visited[S.si]=true;
+  const bars=LEVELS.map(([t,n])=>{const ids=stages.map((s,i)=>s.type===t?i:-1).filter(i=>i>=0),d=ids.filter(i=>S.done[i]).length;return`<div class="lv"><span>${n}</span><div class="bar"><div style="width:${d/ids.length*100}%"></div></div></div>`}).join('');
+  let h=`<div class="brand">${IC.anchor.replace('<svg','<svg class="bi"')} Operación Grúa · Carga segura</div><div class="lvs">${bars}</div><div class="chips">`+
+    stages.map((s,i)=>`<button class="chip ${i===S.si?'on':''} ${S.done[i]?'ok':''} ${!S.visited[i]&&!S.done[i]?'new':''}" data-act="stage" data-i="${i}">${S.done[i]?'✓ ':''}${s.tag}</button>`).join('')+`</div>`;
   h+=`<h2>${st.title}</h2><p class="brief">${st.brief}</p>`;
   h+=st.type==='points'?pointsPanel(st):st.type==='shapes'?shapesPanel(st):curvePanel(st);
   panel.innerHTML=h;updateRO();
-  const nd=Object.keys(S.done).length;$('#hudL').innerHTML=`<span class="ico">⚓</span><div><small>Estás en</small>${st.title.split('·')[0].trim()} · ${st.tag}</div>`;
-  $('#hudR').innerHTML=`<span class="ico">⭐</span><b>${nd}/${stages.length}</b>`;$('#muteI').textContent=S.mute?'🔇':'🔊';
+  const nd=Object.keys(S.done).length;
+  $('#hudL').innerHTML=`<span class="ico">${IC.anchor}</span><div><small>Estás en</small>${st.title.split('·')[0].trim()} · ${st.tag}</div>`;
+  $('#hudR').innerHTML=`<span class="ico">${IC.star}</span><b>${nd}/${stages.length}</b>`;$('#muteI').innerHTML=S.mute?IC.mute:IC.sound;
 }
 const goalText=st=>st.useY?`x̄* = ${fmt(st.target.x)} m · ȳ* = ${fmt(st.target.y)} m`:`x̄* = ${fmt(st.target.x)} m`;
 function pointsPanel(st){const ss=SS();
