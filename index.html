@@ -109,6 +109,38 @@ input[type=range]{accent-color:#78adfd}
 #toast{background:#3e2c20;color:#fbefd9;box-shadow:0 8px 20px rgba(60,40,20,.3)}#toast.bad{background:var(--red)}#toast.good{background:#6b9e4a}
 @media(max-width:980px){.stage{position:sticky;top:6px;z-index:6}.app{padding:10px;gap:12px}.hint{display:none}h2{font-size:17px}.panel{padding:12px}canvas{border-radius:20px}.fbs{font-size:13.5px}}
 @media(max-width:520px){.chip{font-size:12px;padding:3px 8px}.btn{padding:8px 14px}.mcard{font-size:13.5px}}
+/* ===== v2: UI interna de Focus Town medida en vivo: paneles #3E2C20, HUD/dock #54402F, contorno #140C07 + labio de 4px, texto crema #FBEFD9, azul #2F67C9 ===== */
+:root{--c-panel:#3e2c20;--c-hud:#54402f;--c-line:#140c07;--c-edge:#6e5544;--c-text:#fbefd9;--c-mute:#cbbba5;--c-gold:#f9d79d}
+body{background:#1c1d22;color:var(--c-text)}
+canvas{border:2px solid var(--c-line);box-shadow:0 5px 0 var(--c-line);border-radius:24px}
+.panel,.mcard{background:var(--c-panel);border:1px solid var(--c-edge);box-shadow:0 12px 32px rgba(0,0,0,.4);border-radius:20px;color:var(--c-text)}
+.brand{color:var(--c-gold)}h1,h2,h3{color:var(--c-text)}.brief{color:#e9dcc6}.lbl{color:var(--c-gold)}.lbl label{color:var(--c-mute)}
+.chip{background:var(--c-hud);color:var(--c-text);border:1.6px solid var(--c-line);box-shadow:0 3px 0 var(--c-line)}
+.chip.on{background:#31528c;border-color:#1b2f57;color:#dbe9ff;box-shadow:0 3px 0 #1b2f57}.chip.ok{background:#4a7c59;border-color:var(--c-line);color:#fff;box-shadow:0 3px 0 var(--c-line)}
+.btn{background:#78adfd;border:1.6px solid #2f67c9;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.35),0 4px 0 #2f67c9;color:#fff}
+.btn:active{box-shadow:inset 0 1.5px 0 rgba(255,255,255,.35),0 1px 0 #2f67c9}
+.btn.ghost{background:var(--c-hud);color:var(--c-text);border-color:var(--c-line);box-shadow:0 4px 0 var(--c-line)}
+.btn.green{background:#6b9e4a;border-color:#3d6b2a;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),0 4px 0 #3d6b2a}
+.pcard,.calc,.ro,.opt,.goal{background:var(--c-hud);color:var(--c-text);border:1.6px solid var(--c-line);box-shadow:0 3px 0 var(--c-line)}
+.calc{border-color:#2f67c9;box-shadow:0 3px 0 #1b2f57}.pcard.sel{outline:3px solid var(--c-gold)}
+.goal{background:#3d5a2f;border:1.6px solid var(--c-line);color:#e7f3dd;border-radius:999px}
+.ro b{color:var(--c-gold)}.ro td,.ro th,.dt td,.dt th{border-color:var(--c-edge)}.ro th,.dt th{color:var(--c-gold)}
+.opt.ok{background:#4a7c59}.opt.no{background:#8a3b1e}
+input[type=text]{background:#2a1e15;color:var(--c-text);border:1.6px solid var(--c-edge)}input.ok{background:#2f5a3a;border-color:#90be6d}input.no{background:#6d2f19;border-color:#e0825a}
+.eq{background:var(--c-hud);border:1.6px solid var(--c-line);color:var(--c-gold)}
+.mini{background:#31528c;border:1.6px solid #1b2f57;box-shadow:0 2px 0 #1b2f57;color:#dbe9ff}.mini.o{background:#b85c38;border-color:#7a3a1f;box-shadow:0 2px 0 #7a3a1f;color:#fff}.mini.g{background:var(--c-hud);border-color:var(--c-line);box-shadow:0 2px 0 var(--c-line);color:var(--c-mute)}
+.dsvg,.calc svg{background:#f5edd8}.mhead{color:var(--c-gold)}.hint{color:var(--c-mute)}
+.fbs{border:1.6px solid var(--c-line);box-shadow:0 4px 0 var(--c-line);top:64px}
+.fbs.bad{background:#c6410d;color:#fff}.fbs.bad b{color:#ffe8c9}.fbs.good{background:#4a7c59;color:#fff;border-color:var(--c-line)}.fbs.info{background:var(--c-hud);color:var(--c-text);border-color:var(--c-line)}
+#toast{background:var(--c-line);bottom:96px}
+/* HUD flotante y dock inferior como en Focus Town */
+.hud{position:absolute;left:10px;right:10px;top:10px;display:flex;justify-content:space-between;gap:8px;z-index:3;pointer-events:none}
+.pill{pointer-events:auto;display:flex;align-items:center;gap:8px;background:var(--c-hud);border:1.6px solid var(--c-line);box-shadow:0 4px 0 var(--c-line);border-radius:999px;padding:6px 14px 6px 10px;font-weight:600;font-size:14px;color:var(--c-text);line-height:1.1}
+.pill small{display:block;font-size:11px;color:var(--c-mute);font-weight:500}.pill .ico{font-size:22px}.pill b{font-size:15px}
+.dock{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:4px;background:var(--c-hud);border:1.6px solid var(--c-line);box-shadow:0 4px 0 var(--c-line);border-radius:24px;padding:6px 10px;z-index:3}
+.dock button{font:inherit;background:none;border:0;color:var(--c-text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 10px;font-weight:700;font-size:12px;border-radius:14px}
+.dock button i{font-style:normal;font-size:24px;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}.dock button:hover i{transform:translateY(-3px) scale(1.12)}.dock button:active i{transform:scale(.9)}
+@media(max-width:520px){.pill{font-size:12px;padding:4px 10px 4px 8px}.pill .ico{font-size:18px}.dock button{padding:2px 6px;font-size:11px}.dock button i{font-size:20px}.fbs{top:54px}}
 </style>
 </head>
 <body>
@@ -116,6 +148,8 @@ input[type=range]{accent-color:#78adfd}
   <div class="stage">
     <canvas id="c" width="800" height="600" aria-label="Escena del puerto con barco y grúa"></canvas>
     <div id="toast"></div>
+    <div class="hud"><div class="pill" id="hudL"></div><div class="pill" id="hudR"></div></div>
+    <nav class="dock" id="dock"><button data-act="demo"><i>📖</i>Demo</button><button data-act="mute"><i id="muteI">🔊</i>Sonido</button><button data-act="reset"><i>🔄</i>Reiniciar</button></nav>
     <div id="fbs" class="fbs"></div>
     <div id="modal" class="modal"></div>
     <p class="hint">Mueve el mouse para llevar el gancho · clic para soltar · clic en un contenedor para retirarlo · teclado: ← → mover, Espacio soltar, F voltear, Esc cancelar.</p>
@@ -546,10 +580,12 @@ function updateRO(){const r=$('#ro');if(r)r.innerHTML=readoutHTML(stages[S.si]);
 function renderPanel(){
   const st=stages[S.si];
   let h=`<div class="brand">⚓ Operación Grúa · Carga segura</div><div class="chips">`+
-    stages.map((s,i)=>`<button class="chip ${i===S.si?'on':''} ${S.done[i]?'ok':''}" data-act="stage" data-i="${i}">${S.done[i]?'✓ ':''}${s.tag}</button>`).join('')+`<button class="chip" data-act="demo">📖 Demo</button><button class="chip" data-act="mute" title="Sonido">${S.mute?'🔇':'🔊'}</button></div>`;
+    stages.map((s,i)=>`<button class="chip ${i===S.si?'on':''} ${S.done[i]?'ok':''}" data-act="stage" data-i="${i}">${S.done[i]?'✓ ':''}${s.tag}</button>`).join('')+`</div>`;
   h+=`<h2>${st.title}</h2><p class="brief">${st.brief}</p>`;
   h+=st.type==='points'?pointsPanel(st):st.type==='shapes'?shapesPanel(st):curvePanel(st);
   panel.innerHTML=h;updateRO();
+  const nd=Object.keys(S.done).length;$('#hudL').innerHTML=`<span class="ico">⚓</span><div><small>Estás en</small>${st.title.split('·')[0].trim()} · ${st.tag}</div>`;
+  $('#hudR').innerHTML=`<span class="ico">⭐</span><b>${nd}/${stages.length}</b>`;$('#muteI').textContent=S.mute?'🔇':'🔊';
 }
 const goalText=st=>st.useY?`x̄* = ${fmt(st.target.x)} m · ȳ* = ${fmt(st.target.y)} m`:`x̄* = ${fmt(st.target.x)} m`;
 function pointsPanel(st){const ss=SS();
@@ -652,6 +688,7 @@ const acts={
       setTimeout(()=>{if(S.si===idx&&!S.anim)startSail()},2800)}}
 };
 panel.addEventListener('click',e=>{if(S.anim)return;const b=e.target.closest('[data-act]');if(!b||b.tagName==='LABEL')return;if(b.type==='checkbox'){acts.guide();return}acts[b.dataset.act]?.(b.dataset)});
+$('#dock').addEventListener('click',e=>{if(S.anim)return;const b=e.target.closest('[data-act]');if(b)acts[b.dataset.act]?.(b.dataset)});
 panel.addEventListener('change',e=>{if(e.target.id==='ax')acts.lift()});
 panel.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.target.tagName!=='INPUT'||e.target.type==='checkbox'||e.target.type==='range')return;
   const t=stages[S.si].type;if(t==='curve')acts.check3();else if(t==='shapes'&&SS().calc!=null)acts.check2({i:SS().calc})});
